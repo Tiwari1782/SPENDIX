@@ -91,3 +91,68 @@ const getMe = async (req, res, next) => {
     next(err);
   }
 };
+// POST /api/auth/register — Create a new account (company + user)
+const register = async (req, res, next) => {
+    try {
+      const { name, email, password, company_name, company_domain, industry, employee_count_range, role } = req.body;
+  
+      if (!name || !email || !password || !company_name) {
+        return res.status(400).json({ error: true, message: 'name, email, password, and company_name are required', code: 400 });
+      }
+  
+      // Check if email already exists
+      const [existing] = await pool.execute('SELECT id FROM platform_users WHERE email = ?', [email]);
+      if (existing.length > 0) {
+        return res.status(409).json({ error: true, message: 'An account with this email already exists', code: 409 });
+      }
+  
+      // Hash password
+      const salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash(password, salt);
+  
+      // Create company
+      const [companyResult] = await pool.execute(
+        'INSERT INTO companies (name, domain, industry, employee_count_range) VALUES (?, ?, ?, ?)',
+        [company_name, company_domain || null, industry || null, employee_count_range || null]
+      );
+      const companyId = companyResult.insertId;
+  
+      // Map role string to enum value
+      const roleMap = { 'IT Admin': 'it_admin', 'Finance Head': 'finance_viewer', 'Operations': 'dept_head' };
+      const userRole = roleMap[role] || 'it_admin';
+  
+      // Create platform user
+      const [userResult] = await pool.execute(
+        'INSERT INTO platform_users (company_id, name, email, password_hash, role) VALUES (?, ?, ?, ?, ?)',
+        [companyId, name, email, hash, userRole]
+      );
+  
+      const userId = userResult.insertId;
+  
+      // Generate JWT and set cookie
+      const token = jwt.sign(
+        { id: userId, email, role: userRole, company_id: companyId },
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      );
+  
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: '/'
+      });
+  
+      res.status(201).json({
+        success: true,
+        user: { id: userId, name, email, role: userRole },
+        company_id: companyId
+      });
+    } catch (err) {
+      next(err);
+    }
+  };
+  
+  module.exports = { login, logout, getMe, register };
+  
