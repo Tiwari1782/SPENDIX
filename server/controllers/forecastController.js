@@ -48,3 +48,55 @@ const getForecasts = async (req, res, next) => {
     next(err);
   }
 };
+// GET /api/forecast/:toolId/history — Historical spend snapshots for a tool
+const getToolHistory = async (req, res, next) => {
+    try {
+      const { toolId } = req.params;
+  
+      const [rows] = await pool.execute(
+        `SELECT ss.*, t.tool_name FROM spend_snapshots ss
+         JOIN saas_tools t ON ss.tool_id = t.id
+         WHERE ss.tool_id = ? ORDER BY ss.snapshot_month ASC`,
+        [toolId]
+      );
+  
+      res.json(rows.map(r => ({
+        ...r,
+        actual_spend: parseFloat(r.actual_spend),
+        consumption_units: r.consumption_units ? parseFloat(r.consumption_units) : null
+      })));
+    } catch (err) {
+      next(err);
+    }
+  };
+  
+  // POST /api/forecast/:companyId/generate — Trigger Groq forecast generation
+  const generateForecasts = async (req, res, next) => {
+    try {
+      const { companyId } = req.params;
+  
+      // Get all tools
+      const [tools] = await pool.execute(
+        'SELECT id, tool_name FROM saas_tools WHERE company_id = ?',
+        [companyId]
+      );
+  
+      let forecastsGenerated = 0;
+  
+      for (const tool of tools) {
+        // Get historical snapshots (minimum 3 needed)
+        const [snapshots] = await pool.execute(
+          `SELECT snapshot_month, actual_spend, seats_used FROM spend_snapshots
+           WHERE tool_id = ? ORDER BY snapshot_month ASC`,
+          [tool.id]
+        );
+  
+        if (snapshots.length < 3) continue; // Skip tools without enough history
+  
+        try {
+          const result = await generateSpendForecast(tool.tool_name, snapshots.map(s => ({
+            snapshot_month: s.snapshot_month,
+            actual_spend: parseFloat(s.actual_spend),
+            seats_used: s.seats_used
+          })));
+  
