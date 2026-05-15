@@ -99,4 +99,60 @@ const getToolHistory = async (req, res, next) => {
             actual_spend: parseFloat(s.actual_spend),
             seats_used: s.seats_used
           })));
-  
+    // Clear old forecasts for this tool
+    await pool.execute(
+        'DELETE FROM spend_forecasts WHERE tool_id = ? AND company_id = ?',
+        [tool.id, companyId]
+      );
+
+      // Insert new forecasts
+      if (result.projections && result.projections.length > 0) {
+        for (const proj of result.projections) {
+          await pool.execute(
+            `INSERT INTO spend_forecasts (tool_id, company_id, forecast_month, projected_spend, confidence_level, forecast_basis)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [tool.id, companyId, proj.month, proj.projected_spend, proj.confidence_level || 'medium', result.forecast_basis || '']
+          );
+        }
+        forecastsGenerated++;
+      }
+    } catch (aiErr) {
+      console.error(`Forecast generation failed for ${tool.tool_name}:`, aiErr.message);
+      // Continue with other tools
+    }
+  }
+
+  res.json({
+    success: true,
+    tools_forecasted: forecastsGenerated,
+    message: `Generated forecasts for ${forecastsGenerated} tools`
+  });
+} catch (err) {
+  next(err);
+}
+};
+
+// POST /api/forecast/snapshot — Record a monthly spend snapshot
+const addSnapshot = async (req, res, next) => {
+try {
+  const { tool_id, company_id, snapshot_month, actual_spend, seats_used, consumption_units, consumption_unit_label } = req.body;
+
+  if (!tool_id || !company_id || !snapshot_month || actual_spend === undefined) {
+    return res.status(400).json({ error: true, message: 'tool_id, company_id, snapshot_month, and actual_spend are required', code: 400 });
+  }
+
+  const [result] = await pool.execute(
+    `INSERT INTO spend_snapshots (tool_id, company_id, snapshot_month, actual_spend, seats_used, consumption_units, consumption_unit_label)
+     VALUES (?, ?, ?, ?, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE actual_spend = VALUES(actual_spend), seats_used = VALUES(seats_used),
+     consumption_units = VALUES(consumption_units), consumption_unit_label = VALUES(consumption_unit_label)`,
+    [tool_id, company_id, snapshot_month, actual_spend, seats_used || null, consumption_units || null, consumption_unit_label || null]
+  );
+
+  res.status(201).json({ success: true, id: result.insertId, message: 'Snapshot recorded' });
+} catch (err) {
+  next(err);
+}
+};
+
+module.exports = { getForecasts, getToolHistory, generateForecasts, addSnapshot };
