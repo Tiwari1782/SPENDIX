@@ -48,3 +48,47 @@ const getOverlaps = async (req, res, next) => {
       const category = await categorizeToolName(tool.tool_name);
       categorized.push({ ...tool, category });
     }
+     // Group by category (only categories with 2+ tools)
+     const groups = {};
+     for (const tool of categorized) {
+       if (!groups[tool.category]) groups[tool.category] = [];
+       groups[tool.category].push(tool);
+     }
+ 
+     const overlapGroups = [];
+     for (const [category, categoryTools] of Object.entries(groups)) {
+       if (categoryTools.length < 2) continue;
+ 
+       const combinedCost = categoryTools.reduce(
+         (sum, t) => sum + parseFloat(t.total_monthly_cost || 0), 0
+       );
+ 
+       // Generate AI recommendation
+       const recommendation = await generateOverlapRecommendation(
+         categoryTools.map(t => ({ tool_name: t.tool_name, monthly_cost: t.total_monthly_cost }))
+       );
+ 
+       const toolIds = categoryTools.map(t => t.id);
+ 
+       // Persist to DB
+       const [result] = await pool.execute(
+         `INSERT INTO overlap_groups (company_id, category, tool_ids, combined_monthly_cost, recommendation)
+          VALUES (?, ?, ?, ?, ?)`,
+         [companyId, category, JSON.stringify(toolIds), combinedCost, recommendation]
+       );
+ 
+       overlapGroups.push({
+         id: result.insertId,
+         category,
+         tools: categoryTools.map(t => ({ id: t.id, tool_name: t.tool_name, monthly_cost: parseFloat(t.total_monthly_cost) })),
+         combined_monthly_cost: combinedCost,
+         recommendation
+       });
+     }
+ 
+     res.json(overlapGroups);
+   } catch (err) {
+     next(err);
+   }
+ };
+ 
