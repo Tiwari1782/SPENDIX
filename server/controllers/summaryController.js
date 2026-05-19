@@ -38,3 +38,43 @@ const getSummary = async (req, res, next) => {
       "SELECT COUNT(*) AS count FROM parsed_invoices WHERE company_id = ? AND status = 'pending_review'",
       [companyId]
     );
+     // Overlap groups count
+     const [overlapCount] = await pool.execute(
+        'SELECT COUNT(*) AS count FROM overlap_groups WHERE company_id = ?', [companyId]
+      );
+  
+      // Offboarding risk count (distinct inactive employees with active licenses)
+      const [offboardingCount] = await pool.execute(
+        `SELECT COUNT(DISTINCT e.id) AS count
+         FROM usage_logs ul JOIN employees e ON ul.employee_id = e.id
+         JOIN saas_tools t ON ul.tool_id = t.id
+         WHERE t.company_id = ? AND e.is_active = FALSE AND ul.has_license = TRUE`,
+        [companyId]
+      );
+  
+      // Upcoming renewals (within 30 days)
+      const [renewalCount] = await pool.execute(
+        `SELECT COUNT(*) AS count FROM saas_tools
+         WHERE company_id = ? AND renewal_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)`,
+        [companyId]
+      );
+  
+      res.json({
+        total_monthly_spend: totalMonthlySpend,
+        total_monthly_waste: totalMonthlyWaste,
+        annual_savings_potential: totalMonthlyWaste * 12,
+        tools_count: toolCount[0].count,
+        employees_count: parseInt(empCount[0].total),
+        inactive_employees_count: parseInt(empCount[0].inactive) || 0,
+        shadow_it_count: shadowCount[0].count,
+        overlap_groups_count: overlapCount[0].count,
+        offboarding_risk_count: offboardingCount[0].count,
+        upcoming_renewals: renewalCount[0].count
+      });
+    } catch (err) {
+      next(err);
+    }
+  };
+  
+  module.exports = { getSummary };
+  
