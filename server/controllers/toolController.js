@@ -99,3 +99,59 @@ const getUnusedSeats = async (req, res, next) => {
       if (!company_id || !tool_name) {
         return res.status(400).json({ error: true, message: 'company_id and tool_name are required', code: 400 });
       }
+      const computedTotal = total_monthly_cost || (seats_purchased || 0) * (monthly_cost_per_seat || 0);
+
+      const [result] = await pool.execute(
+        `INSERT INTO saas_tools (company_id, tool_name, category, seats_purchased, monthly_cost_per_seat,
+         total_monthly_cost, billing_model, renewal_date, auto_renewal, vendor_contact_email,
+         owner_user_id, contract_term_months)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [company_id, tool_name, category || null, seats_purchased || 0,
+         monthly_cost_per_seat || 0, computedTotal, billing_model || 'per_seat',
+         renewal_date || null, auto_renewal || false, vendor_contact_email || null,
+         owner_user_id || null, contract_term_months || null]
+      );
+  
+      res.status(201).json({ success: true, id: result.insertId, message: 'Tool added successfully' });
+    } catch (err) {
+      next(err);
+    }
+  };
+  
+  // PUT /api/tools/:toolId — Update tool details
+  const updateTool = async (req, res, next) => {
+    try {
+      const { toolId } = req.params;
+      const updates = req.body;
+  
+      const allowedFields = [
+        'tool_name', 'category', 'seats_purchased', 'monthly_cost_per_seat',
+        'total_monthly_cost', 'billing_model', 'renewal_date', 'auto_renewal',
+        'vendor_contact_email', 'owner_user_id', 'contract_term_months'
+      ];
+  
+      const fields = [];
+      const values = [];
+  
+      for (const [key, value] of Object.entries(updates)) {
+        if (allowedFields.includes(key)) {
+          fields.push(`${key} = ?`);
+          values.push(value);
+        }
+      }
+  
+      if (fields.length === 0) {
+        return res.status(400).json({ error: true, message: 'No valid fields to update', code: 400 });
+      }
+  
+      values.push(toolId);
+      await pool.execute(`UPDATE saas_tools SET ${fields.join(', ')} WHERE id = ?`, values);
+  
+      res.json({ success: true, message: 'Tool updated' });
+    } catch (err) {
+      next(err);
+    }
+  };
+  
+  module.exports = { getTools, getUnusedSeats, addTool, updateTool };
+  
