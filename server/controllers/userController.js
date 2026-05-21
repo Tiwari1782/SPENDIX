@@ -46,3 +46,47 @@ const inviteUser = async (req, res, next) => {
     next(err);
   }
 };
+// PUT /api/users/:userId/role — Update role assignment
+const updateUserRole = async (req, res, next) => {
+    try {
+      const { userId } = req.params;
+      const { role } = req.body;
+  
+      const validRoles = ['it_admin', 'finance_viewer', 'dept_head', 'read_only'];
+      if (!role || !validRoles.includes(role)) {
+        return res.status(400).json({ error: true, message: `role must be one of: ${validRoles.join(', ')}`, code: 400 });
+      }
+  
+      const [result] = await pool.execute(
+        'UPDATE platform_users SET role = ? WHERE id = ?', [role, userId]
+      );
+  
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: true, message: 'User not found', code: 404 });
+      }
+  
+      res.json({ success: true, message: 'Role updated' });
+    } catch (err) {
+      next(err);
+    }
+  };
+  
+  // DELETE /api/users/:userId — Remove user access
+  const removeUser = async (req, res, next) => {
+    try {
+      const { userId } = req.params;
+  
+      const [result] = await pool.execute('DELETE FROM platform_users WHERE id = ?', [userId]);
+  
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: true, message: 'User not found', code: 404 });
+      }
+  
+      res.json({ success: true, message: 'User removed' });
+    } catch (err) {
+      next(err);
+    }
+  };
+  
+  module.exports = { getUsers, inviteUser, updateUserRole, removeUser };
+  
