@@ -154,3 +154,69 @@ const updateTask = async (req, res, next) => {
       `UPDATE workflow_tasks SET status = ?, completed_at = ${completedAt} WHERE id = ?`,
       [status, taskId]
     );
+      // Check if all tasks in the workflow are done
+      const [task] = await pool.execute(
+        'SELECT workflow_instance_id FROM workflow_tasks WHERE id = ?', [taskId]
+      );
+      if (task.length > 0) {
+        const instanceId = task[0].workflow_instance_id;
+        const [remaining] = await pool.execute(
+          "SELECT COUNT(*) AS count FROM workflow_tasks WHERE workflow_instance_id = ? AND status = 'pending'",
+          [instanceId]
+        );
+        if (remaining[0].count === 0) {
+          await pool.execute(
+            "UPDATE workflow_instances SET status = 'completed', completed_at = NOW() WHERE id = ?",
+            [instanceId]
+          );
+        }
+      }
+  
+      res.json({ success: true, message: `Task ${status}` });
+    } catch (err) {
+      next(err);
+    }
+  };
+  
+  // GET /api/workflows/templates/:companyId — All workflow templates
+  const getTemplates = async (req, res, next) => {
+    try {
+      const { companyId } = req.params;
+  
+      const [rows] = await pool.execute(
+        'SELECT * FROM workflow_templates WHERE company_id = ? ORDER BY created_at DESC',
+        [companyId]
+      );
+  
+      res.json(rows.map(r => ({
+        ...r,
+        tool_ids: typeof r.tool_ids === 'string' ? JSON.parse(r.tool_ids) : r.tool_ids
+      })));
+    } catch (err) {
+      next(err);
+    }
+  };
+  
+  // POST /api/workflows/templates — Create a new workflow template
+  const createTemplate = async (req, res, next) => {
+    try {
+      const { company_id, template_name, trigger_type, department, tool_ids } = req.body;
+  
+      if (!company_id || !template_name || !trigger_type) {
+        return res.status(400).json({ error: true, message: 'company_id, template_name, and trigger_type are required', code: 400 });
+      }
+  
+      const [result] = await pool.execute(
+        `INSERT INTO workflow_templates (company_id, template_name, trigger_type, department, tool_ids)
+         VALUES (?, ?, ?, ?, ?)`,
+        [company_id, template_name, trigger_type, department || null, JSON.stringify(tool_ids || [])]
+      );
+  
+      res.status(201).json({ success: true, id: result.insertId, message: 'Template created' });
+    } catch (err) {
+      next(err);
+    }
+  };
+  
+  module.exports = { getWorkflows, getWorkflowTasks, triggerWorkflow, updateTask, getTemplates, createTemplate };
+  
