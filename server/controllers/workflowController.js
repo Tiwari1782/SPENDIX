@@ -46,3 +46,56 @@ const getWorkflowTasks = async (req, res, next) => {
     next(err);
   }
 };
+// POST /api/workflows/trigger — Trigger onboarding/offboarding workflow
+const triggerWorkflow = async (req, res, next) => {
+    try {
+      const { company_id, employee_id, trigger_type, triggered_by } = req.body;
+  
+      if (!company_id || !employee_id || !trigger_type) {
+        return res.status(400).json({ error: true, message: 'company_id, employee_id, and trigger_type are required', code: 400 });
+      }
+  
+      // Get employee info
+      const [employees] = await pool.execute(
+        'SELECT * FROM employees WHERE id = ? AND company_id = ?',
+        [employee_id, company_id]
+      );
+      if (employees.length === 0) {
+        return res.status(404).json({ error: true, message: 'Employee not found', code: 404 });
+      }
+      const employee = employees[0];
+  
+      // Check for existing template
+      const [templates] = await pool.execute(
+        `SELECT * FROM workflow_templates 
+         WHERE company_id = ? AND trigger_type = ? AND (department = ? OR department IS NULL)
+         ORDER BY department DESC LIMIT 1`,
+        [company_id, trigger_type, employee.department]
+      );
+  
+      // Get tools relevant to this employee
+      const [tools] = await pool.execute(
+        `SELECT DISTINCT t.id, t.tool_name FROM saas_tools t
+         JOIN usage_logs ul ON ul.tool_id = t.id
+         WHERE ul.employee_id = ? AND ul.has_license = TRUE`,
+        [employee_id]
+      );
+  
+      // If no tools found, get all company tools
+      let toolsForWorkflow = tools;
+      if (tools.length === 0) {
+        const [allTools] = await pool.execute(
+          'SELECT id, tool_name FROM saas_tools WHERE company_id = ?',
+          [company_id]
+        );
+        toolsForWorkflow = allTools;
+      }
+  
+      // Create workflow instance
+      const [instanceResult] = await pool.execute(
+        `INSERT INTO workflow_instances (template_id, company_id, employee_id, trigger_type, status, triggered_by)
+         VALUES (?, ?, ?, ?, 'pending', ?)`,
+        [templates.length > 0 ? templates[0].id : null, company_id, employee_id, trigger_type, triggered_by || null]
+      );
+      const instanceId = instanceResult.insertId;
+  
