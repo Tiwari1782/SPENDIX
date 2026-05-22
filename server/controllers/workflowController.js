@@ -98,4 +98,59 @@ const triggerWorkflow = async (req, res, next) => {
         [templates.length > 0 ? templates[0].id : null, company_id, employee_id, trigger_type, triggered_by || null]
       );
       const instanceId = instanceResult.insertId;
-  
+    // Generate tasks via Groq AI
+    let tasks = [];
+    try {
+      tasks = await generateWorkflowTasks(trigger_type, employee, toolsForWorkflow);
+    } catch (aiErr) {
+      console.error('Groq workflow generation failed, using fallback:', aiErr.message);
+      // Fallback: create basic tasks per tool
+      const actionType = trigger_type === 'onboarding' ? 'grant_access' : 'revoke_access';
+      tasks = toolsForWorkflow.map(t => ({
+        tool_id: t.id,
+        task_description: `${trigger_type === 'onboarding' ? 'Grant' : 'Revoke'} access to ${t.tool_name} for ${employee.name}`,
+        action_type: actionType
+      }));
+    }
+
+    // Insert tasks
+    for (const task of tasks) {
+      await pool.execute(
+        `INSERT INTO workflow_tasks (workflow_instance_id, tool_id, task_description, action_type, assigned_to_email, due_date)
+         VALUES (?, ?, ?, ?, ?, DATE_ADD(CURDATE(), INTERVAL 7 DAY))`,
+        [instanceId, task.tool_id || null, task.task_description, task.action_type || 'other', task.assigned_to_email || null]
+      );
+    }
+
+    // Update instance status
+    await pool.execute(
+      "UPDATE workflow_instances SET status = 'in_progress' WHERE id = ?",
+      [instanceId]
+    );
+
+    res.status(201).json({
+      success: true,
+      instance_id: instanceId,
+      tasks_created: tasks.length,
+      message: `${trigger_type} workflow triggered for ${employee.name}`
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// PUT /api/workflows/tasks/:taskId — Mark a task complete or skipped
+const updateTask = async (req, res, next) => {
+  try {
+    const { taskId } = req.params;
+    const { status } = req.body;
+
+    if (!status || !['completed', 'skipped', 'pending'].includes(status)) {
+      return res.status(400).json({ error: true, message: 'status must be completed, skipped, or pending', code: 400 });
+    }
+
+    const completedAt = status === 'completed' ? 'NOW()' : 'NULL';
+    await pool.execute(
+      `UPDATE workflow_tasks SET status = ?, completed_at = ${completedAt} WHERE id = ?`,
+      [status, taskId]
+    );
