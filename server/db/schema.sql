@@ -196,3 +196,65 @@ CREATE TABLE IF NOT EXISTS workflow_tasks (
   FOREIGN KEY (workflow_instance_id) REFERENCES workflow_instances(id),
   FOREIGN KEY (tool_id) REFERENCES saas_tools(id)
 );
+-- Uploaded and parsed vendor contracts
+CREATE TABLE IF NOT EXISTS contracts (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  tool_id INT NOT NULL,
+  company_id INT NOT NULL,
+  file_name VARCHAR(255),
+  file_path VARCHAR(500),
+  raw_text LONGTEXT,
+  parsed_auto_renewal BOOLEAN,
+  parsed_notice_period_days INT,
+  parsed_price_escalation_percent DECIMAL(5,2),
+  parsed_penalty_clause TEXT,
+  parsed_support_sla TEXT,
+  parsed_termination_clause TEXT,
+  groq_summary TEXT,
+  parse_status ENUM('pending', 'parsed', 'failed') DEFAULT 'pending',
+  uploaded_by INT,
+  uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (tool_id) REFERENCES saas_tools(id),
+  FOREIGN KEY (company_id) REFERENCES companies(id),
+  FOREIGN KEY (uploaded_by) REFERENCES platform_users(id)
+);
+
+-- Anonymized peer benchmarks
+CREATE TABLE IF NOT EXISTS benchmark_data (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  category VARCHAR(100) NOT NULL,
+  industry VARCHAR(100),
+  employee_range VARCHAR(50),
+  avg_monthly_spend_per_employee DECIMAL(10,2),
+  median_monthly_spend_per_employee DECIMAL(10,2),
+  p75_monthly_spend_per_employee DECIMAL(10,2),
+  avg_seats_utilization_percent DECIMAL(5,2),
+  sample_size INT,
+  computed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Third-party integration configurations per company
+CREATE TABLE IF NOT EXISTS integrations (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  company_id INT NOT NULL,
+  integration_type ENUM('google_workspace', 'zoho_books', 'razorpay', 'slack', 'jira') NOT NULL,
+  status ENUM('connected', 'disconnected', 'error') DEFAULT 'disconnected',
+  credentials_encrypted TEXT,
+  last_synced_at TIMESTAMP NULL,
+  sync_error_message TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (company_id) REFERENCES companies(id),
+  UNIQUE KEY unique_company_integration (company_id, integration_type)
+);
+
+-- Log of all integration sync events
+CREATE TABLE IF NOT EXISTS integration_sync_logs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  integration_id INT NOT NULL,
+  sync_type VARCHAR(100),
+  records_synced INT DEFAULT 0,
+  status ENUM('success', 'partial', 'failed') NOT NULL,
+  error_details TEXT,
+  synced_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (integration_id) REFERENCES integrations(id)
+);
