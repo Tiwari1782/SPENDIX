@@ -153,3 +153,46 @@ CREATE TABLE IF NOT EXISTS spend_forecasts (
   FOREIGN KEY (tool_id) REFERENCES saas_tools(id),
   FOREIGN KEY (company_id) REFERENCES companies(id)
 );
+-- Provisioning workflow templates per role/department
+CREATE TABLE IF NOT EXISTS workflow_templates (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  company_id INT NOT NULL,
+  template_name VARCHAR(255) NOT NULL,
+  trigger_type ENUM('onboarding', 'offboarding', 'role_change') NOT NULL,
+  department VARCHAR(100),
+  tool_ids JSON,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (company_id) REFERENCES companies(id)
+);
+
+-- Active provisioning/deprovisioning workflow instances
+CREATE TABLE IF NOT EXISTS workflow_instances (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  template_id INT,
+  company_id INT NOT NULL,
+  employee_id INT NOT NULL,
+  trigger_type ENUM('onboarding', 'offboarding', 'role_change') NOT NULL,
+  status ENUM('pending', 'in_progress', 'completed', 'overdue') DEFAULT 'pending',
+  triggered_by INT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  completed_at TIMESTAMP NULL,
+  FOREIGN KEY (template_id) REFERENCES workflow_templates(id),
+  FOREIGN KEY (company_id) REFERENCES companies(id),
+  FOREIGN KEY (employee_id) REFERENCES employees(id),
+  FOREIGN KEY (triggered_by) REFERENCES platform_users(id)
+);
+
+-- Individual tasks within a workflow instance
+CREATE TABLE IF NOT EXISTS workflow_tasks (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  workflow_instance_id INT NOT NULL,
+  tool_id INT,
+  task_description VARCHAR(500) NOT NULL,
+  action_type ENUM('grant_access', 'revoke_access', 'transfer_data', 'notify_vendor', 'other'),
+  assigned_to_email VARCHAR(255),
+  status ENUM('pending', 'completed', 'skipped') DEFAULT 'pending',
+  due_date DATE,
+  completed_at TIMESTAMP NULL,
+  FOREIGN KEY (workflow_instance_id) REFERENCES workflow_instances(id),
+  FOREIGN KEY (tool_id) REFERENCES saas_tools(id)
+);
