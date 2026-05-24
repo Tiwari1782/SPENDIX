@@ -98,3 +98,58 @@ CREATE TABLE IF NOT EXISTS parsed_invoices (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (company_id) REFERENCES companies(id)
 );
+
+-- Tool overlap groups detected by AI
+CREATE TABLE IF NOT EXISTS overlap_groups (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  company_id INT NOT NULL,
+  category VARCHAR(100),
+  tool_ids JSON,
+  combined_monthly_cost DECIMAL(10,2),
+  recommendation TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (company_id) REFERENCES companies(id)
+);
+
+-- Renewal alerts sent log
+CREATE TABLE IF NOT EXISTS renewal_alerts (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  tool_id INT NOT NULL,
+  alert_type ENUM('90_day', '60_day', '30_day') NOT NULL,
+  sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (tool_id) REFERENCES saas_tools(id)
+);
+
+-- ============================================================
+-- Future Module Tables (schema only, not seeded in MVP)
+-- ============================================================
+
+-- Monthly spend snapshots per tool (for forecasting)
+CREATE TABLE IF NOT EXISTS spend_snapshots (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  tool_id INT NOT NULL,
+  company_id INT NOT NULL,
+  snapshot_month DATE NOT NULL,
+  actual_spend DECIMAL(10,2),
+  seats_used INT,
+  consumption_units DECIMAL(10,4),
+  consumption_unit_label VARCHAR(50),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY unique_tool_month (tool_id, snapshot_month),
+  FOREIGN KEY (tool_id) REFERENCES saas_tools(id),
+  FOREIGN KEY (company_id) REFERENCES companies(id)
+);
+
+-- AI-generated spend forecasts
+CREATE TABLE IF NOT EXISTS spend_forecasts (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  tool_id INT NOT NULL,
+  company_id INT NOT NULL,
+  forecast_month DATE NOT NULL,
+  projected_spend DECIMAL(10,2),
+  confidence_level ENUM('low', 'medium', 'high') DEFAULT 'medium',
+  forecast_basis TEXT,
+  generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (tool_id) REFERENCES saas_tools(id),
+  FOREIGN KEY (company_id) REFERENCES companies(id)
+);
