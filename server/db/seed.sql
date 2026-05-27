@@ -72,3 +72,58 @@ INSERT INTO employees (company_id, name, email, department, job_title, manager_e
 (1,'Akash Sinha','akash@demo.com','Engineering','ML Engineer','lead@demo.com',TRUE,NULL),
 (1,'Preeti Mahajan','preeti@demo.com','Design','Graphic Designer','designlead@demo.com',TRUE,NULL),
 -- Inactive employees (12)
+(1,'Rohit Verma','rohitv@demo.com','Sales','Sales Executive','head@demo.com',FALSE,'2026-02-15'),
+(1,'Nisha Gupta','nisha@demo.com','Marketing','Campaign Manager','vp@demo.com',FALSE,'2026-03-01'),
+(1,'Aman Khosla','aman@demo.com','Engineering','Junior Developer','lead@demo.com',FALSE,'2026-01-20'),
+(1,'Geeta Raman','geeta@demo.com','Finance','Accounts Clerk','cfo@demo.com',FALSE,'2026-02-28'),
+(1,'Tarun Batra','tarun@demo.com','Engineering','Intern','lead@demo.com',FALSE,'2026-03-15'),
+(1,'Shalini Prasad','shalini@demo.com','HR','HR Intern','chro@demo.com',FALSE,'2026-01-10'),
+(1,'Mohit Grover','mohit@demo.com','Sales','SDR','head@demo.com',FALSE,'2026-02-05'),
+(1,'Jyoti Choudhary','jyoti@demo.com','Marketing','Social Media','vp@demo.com',FALSE,'2026-03-20'),
+(1,'Rakesh Garg','rakesh@demo.com','Operations','Logistics','coo@demo.com',FALSE,'2026-01-25'),
+(1,'Sunita Reddy','sunita@demo.com','Engineering','Tester','lead@demo.com',FALSE,'2026-02-10'),
+(1,'Ajay Thapa','ajay@demo.com','Sales','Sales Intern','head@demo.com',FALSE,'2026-03-05'),
+(1,'Bhavna Sharma','bhavna@demo.com','Finance','Billing Clerk','cfo@demo.com',FALSE,'2026-02-20');
+
+-- ============================================================
+-- Usage Logs
+-- Active users: last_login within 60 days, good login counts
+-- Idle users: last_login > 60 days ago = wasted seats
+-- Target: ~35-40% idle rate → ~₹1,42,000 monthly waste
+-- ============================================================
+
+INSERT INTO usage_logs (employee_id, tool_id, last_login, login_count_last_30_days, has_license) VALUES
+-- Salesforce (tool 1): 30 seats, 18 active / 12 idle → waste = 12×4200 = ₹50,400
+(1,1,'2026-05-01',22,TRUE),(2,1,'2026-05-03',18,TRUE),(3,1,'2026-05-02',25,TRUE),
+(4,1,'2026-04-28',15,TRUE),(7,1,'2026-05-04',20,TRUE),(11,1,'2026-05-01',12,TRUE),
+(13,1,'2026-04-30',19,TRUE),(15,1,'2026-05-02',24,TRUE),(21,1,'2026-04-29',16,TRUE),
+(25,1,'2026-05-03',14,TRUE),(26,1,'2026-05-01',21,TRUE),(33,1,'2026-04-28',17,TRUE),
+(39,1,'2026-05-02',11,TRUE),(44,1,'2026-04-30',13,TRUE),(45,1,'2026-05-01',22,TRUE),
+(5,1,'2026-04-25',10,TRUE),(8,1,'2026-04-20',8,TRUE),(14,1,'2026-04-22',6,TRUE),
+-- idle seats (last_login > 60 days)
+(6,1,'2026-02-15',0,TRUE),(9,1,'2026-02-20',0,TRUE),(10,1,'2026-01-10',0,TRUE),
+(16,1,'2026-02-01',1,TRUE),(17,1,'2026-01-25',0,TRUE),(19,1,'2026-02-28',0,TRUE),
+(22,1,'2026-01-15',0,TRUE),(24,1,'2026-02-10',0,TRUE),(27,1,'2026-01-30',0,TRUE),
+(28,1,'2026-02-18',0,TRUE),(29,1,'2026-01-20',0,TRUE),(31,1,'2026-02-05',0,TRUE),
+-- inactive employees with licenses (offboarding risks)
+(49,1,'2026-01-10',0,TRUE),(55,1,'2026-01-05',0,TRUE),
+
+-- Zoom (tool 2): 50 seats, 30 active / 20 idle → waste = 20×1400 = ₹28,000
+(1,2,'2026-05-04',20,TRUE),(2,2,'2026-05-03',18,TRUE),(3,2,'2026-05-01',22,TRUE),
+(4,2,'2026-04-29',15,TRUE),(6,2,'2026-05-02',19,TRUE),(7,2,'2026-05-03',21,TRUE),
+(8,2,'2026-05-01',14,TRUE),(11,2,'2026-04-30',17,TRUE),(13,2,'2026-05-02',20,TRUE),
+(15,2,'2026-05-04',23,TRUE),(17,2,'2026-05-01',16,TRUE),(19,2,'2026-04-28',12,TRUE),
+(20,2,'2026-05-03',18,TRUE),(22,2,'2026-05-01',15,TRUE),(24,2,'2026-04-30',19,TRUE),
+(25,2,'2026-05-02',21,TRUE),(27,2,'2026-05-01',13,TRUE),(29,2,'2026-04-29',17,TRUE),
+(31,2,'2026-05-03',22,TRUE),(33,2,'2026-05-01',14,TRUE),(35,2,'2026-04-30',20,TRUE),
+(37,2,'2026-05-02',16,TRUE),(39,2,'2026-05-04',18,TRUE),(41,2,'2026-05-01',15,TRUE),
+(43,2,'2026-04-28',11,TRUE),(44,2,'2026-05-03',19,TRUE),(46,2,'2026-05-01',13,TRUE),
+(47,2,'2026-04-30',17,TRUE),(5,2,'2026-04-25',8,TRUE),(14,2,'2026-04-22',6,TRUE),
+-- idle
+(9,2,'2026-02-10',0,TRUE),(10,2,'2026-01-20',0,TRUE),(12,2,'2026-02-05',0,TRUE),
+(16,2,'2026-01-28',0,TRUE),(18,2,'2026-02-15',0,TRUE),(21,2,'2026-01-30',0,TRUE),
+(23,2,'2026-02-01',0,TRUE),(26,2,'2026-01-15',0,TRUE),(28,2,'2026-02-20',0,TRUE),
+(30,2,'2026-01-25',0,TRUE),(32,2,'2026-02-08',0,TRUE),(34,2,'2026-01-18',0,TRUE),
+(36,2,'2026-02-12',0,TRUE),(38,2,'2026-01-22',0,TRUE),(40,2,'2026-02-03',0,TRUE),
+(42,2,'2026-01-28',0,TRUE),(45,2,'2026-02-14',0,TRUE),(48,2,'2026-01-10',0,TRUE),
+(49,2,'2026-01-05',0,TRUE),(50,2,'2026-01-12',0,TRUE),
