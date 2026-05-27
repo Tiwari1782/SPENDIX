@@ -215,3 +215,36 @@ INSERT INTO usage_logs (employee_id, tool_id, last_login, login_count_last_30_da
 (22,7,'2026-01-28',0,TRUE),(27,7,'2026-02-15',0,TRUE),(32,7,'2026-01-18',0,TRUE),
 (36,7,'2026-02-01',0,TRUE),(40,7,'2026-01-22',0,TRUE),(51,7,'2026-01-05',0,TRUE),
 (53,7,'2026-02-08',0,TRUE),
+-- Asana (tool 8): 20 seats, 15 active / 5 idle → waste = 5×900 = ₹4,500
+(2,8,'2026-05-03',18,TRUE),(3,8,'2026-05-01',15,TRUE),(7,8,'2026-05-02',20,TRUE),
+(8,8,'2026-05-01',14,TRUE),(13,8,'2026-04-30',19,TRUE),(17,8,'2026-05-04',22,TRUE),
+(20,8,'2026-05-02',16,TRUE),(24,8,'2026-05-01',18,TRUE),(29,8,'2026-04-29',13,TRUE),
+(33,8,'2026-05-03',21,TRUE),(38,8,'2026-05-01',17,TRUE),(42,8,'2026-04-30',15,TRUE),
+(44,8,'2026-05-02',19,TRUE),(46,8,'2026-05-01',14,TRUE),(48,8,'2026-04-28',16,TRUE),
+-- idle
+(5,8,'2026-02-10',0,TRUE),(14,8,'2026-01-20',0,TRUE),(21,8,'2026-02-05',0,TRUE),
+(26,8,'2026-01-28',0,TRUE),(30,8,'2026-02-15',0,TRUE);
+
+-- TOTAL WASTE: 50400+28000+17850+12000+9800+7500+12000+4500 = ₹1,42,050
+
+-- ============================================================
+-- Shadow IT — 3 discovered invoices (pending_review)
+-- ============================================================
+INSERT INTO parsed_invoices (company_id, raw_text, parsed_tool_name, parsed_amount, parsed_seats, parsed_renewal_date, status) VALUES
+(1, 'Invoice from Canva Pro. Amount: Rs. 4,999/month. Team plan for 5 users. Next billing: 01 Aug 2026.', 'Canva Pro', 4999.00, 5, '2026-08-01', 'pending_review'),
+(1, 'Loom Business subscription. Monthly charge: Rs. 3,200. 8 recorder seats. Renewal: 15 Jul 2026.', 'Loom Business', 3200.00, 8, '2026-07-15', 'pending_review'),
+(1, 'Notion AI add-on. Billed Rs. 1,500/month for workspace. Auto-renews 01 Sep 2026.', 'Notion AI', 1500.00, NULL, '2026-09-01', 'pending_review');
+
+-- ============================================================
+-- Renewal Alerts — 2 tools with alerts already sent
+-- ============================================================
+INSERT INTO renewal_alerts (tool_id, alert_type, sent_at) VALUES
+(1, '30_day', '2026-05-01 08:00:00'),
+(2, '30_day', '2026-05-03 08:00:00');
+
+-- ============================================================
+-- Overlap Groups — 2 groups
+-- ============================================================
+INSERT INTO overlap_groups (company_id, category, tool_ids, combined_monthly_cost, recommendation) VALUES
+(1, 'Video Conferencing', '[2, 6]', 115000.00, 'You are paying Rs. 70,000/month for Zoom Business while Google Meet is included in your Google Workspace subscription at Rs. 45,000/month. Consider consolidating to Google Meet alone to save Rs. 70,000/month on the dedicated video conferencing tool.'),
+(1, 'Project Management', '[5, 7, 8]', 82000.00, 'You are running three project management tools simultaneously — Notion (Rs. 28,000/month), Jira (Rs. 36,000/month), and Asana (Rs. 18,000/month). Standardize on one platform. If engineering needs Jira for issue tracking, move all other teams to Jira and eliminate Notion and Asana to save Rs. 46,000/month.');
