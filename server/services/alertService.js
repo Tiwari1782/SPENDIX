@@ -51,3 +51,59 @@ async function sendRenewalAlert(tool, alertType) {
       <p style="color: #94A3B8; font-size: 12px;">Sent by Spendix — SaaS Intelligence Platform</p>
     </div>
   `;
+  try {
+    await transporter.sendMail({
+      from: process.env.ALERT_EMAIL_FROM || 'alerts@spendix.in',
+      to: process.env.ALERT_EMAIL_TO || 'admin@yourcompany.com',
+      subject,
+      html
+    });
+
+    // Log the alert
+    await pool.execute(
+      'INSERT INTO renewal_alerts (tool_id, alert_type) VALUES (?, ?)',
+      [tool.id, alertType]
+    );
+
+    console.log(`✅ Renewal alert sent: ${tool.tool_name} (${alertType})`);
+    return true;
+  } catch (err) {
+    console.error(`❌ Failed to send alert for ${tool.tool_name}:`, err.message);
+    return false;
+  }
+}
+
+/**
+ * Process all renewal alerts — check tools within 90 days and send appropriate alerts
+ * @returns {number} Number of alerts sent
+ */
+async function processRenewalAlerts() {
+  const [tools] = await pool.execute(
+    `SELECT id, tool_name, renewal_date, total_monthly_cost, auto_renewal
+     FROM saas_tools
+     WHERE renewal_date IS NOT NULL
+     AND renewal_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 90 DAY)`
+  );
+
+  let alertsSent = 0;
+
+  for (const tool of tools) {
+    const daysUntil = Math.ceil(
+      (new Date(tool.renewal_date) - new Date()) / (1000 * 60 * 60 * 24)
+    );
+
+    let alertType = null;
+    if (daysUntil <= 30) alertType = '30_day';
+    else if (daysUntil <= 60) alertType = '60_day';
+    else if (daysUntil <= 90) alertType = '90_day';
+
+    if (alertType) {
+      const sent = await sendRenewalAlert(tool, alertType);
+      if (sent) alertsSent++;
+    }
+  }
+
+  return alertsSent;
+}
+
+module.exports = { sendRenewalAlert, processRenewalAlerts };
