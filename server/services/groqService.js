@@ -96,4 +96,56 @@ async function categorizeToolName(toolName) {
       .map(t => `${t.tool_name}: Rs. ${t.monthly_cost?.toLocaleString('en-IN')}/month`)
       .join('\n');
 
-      
+      const response = await getGroqClient().chat.completions.create({
+        model: MODEL,
+        messages: [
+          {
+            role: 'system',
+            content: `You are a SaaS spend optimization advisor for Indian companies. Given a list of overlapping tools in the same category with their monthly costs, write a concise recommendation (2-3 sentences) explaining:
+    1. Why these tools overlap
+    2. Which one to keep
+    3. How much money can be saved monthly by consolidating
+    Use Rs. for currency. Be specific and actionable.`
+          },
+          {
+            role: 'user',
+            content: `These tools serve the same function:\n${toolList}`
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: 256
+      });
+    
+      return response.choices[0]?.message?.content?.trim() || 'Consolidation recommended to reduce costs.';
+    }
+    
+    /**
+     * Generate spend forecast for a tool based on historical snapshots.
+     * @param {string} toolName - Name of the tool
+     * @param {Array} snapshots - Array of { snapshot_month, actual_spend, seats_used }
+     * @returns {Object} { projections: [{ month, projected_spend, confidence_level }], forecast_basis }
+     */
+    async function generateSpendForecast(toolName, snapshots) {
+      const historyStr = snapshots
+        .map(s => `${s.snapshot_month}: Rs. ${s.actual_spend} (${s.seats_used || 'N/A'} seats)`)
+        .join('\n');
+    
+      const response = await getGroqClient().chat.completions.create({
+        model: MODEL,
+        messages: [
+          {
+            role: 'system',
+            content: `You are a SaaS spend forecasting analyst for Indian companies. Given historical monthly spend data for a tool, project the next 3 months of spend.
+    Return ONLY a valid JSON object with:
+    - projections: array of { month (YYYY-MM-DD first of month), projected_spend (number), confidence_level ("low"/"medium"/"high") }
+    - forecast_basis: string explaining your reasoning in 2-3 sentences
+    Do not include any text outside the JSON object.`
+          },
+          {
+            role: 'user',
+            content: `Tool: ${toolName}\nHistorical spend:\n${historyStr}`
+          }
+        ],
+        temperature: 0.2,
+        max_tokens: 512
+      });
