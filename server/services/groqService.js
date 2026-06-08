@@ -53,3 +53,47 @@ Do not include any text outside the JSON object.`
     throw new Error(`Failed to parse Groq response as JSON: ${content}`);
   }
 }
+/**
+ * Categorize a tool by its name into a standard category.
+ * @param {string} toolName - The name of the SaaS tool
+ * @returns {string} Category string (e.g., 'communication', 'project_management')
+ */
+async function categorizeToolName(toolName) {
+    const response = await getGroqClient().chat.completions.create({
+      model: MODEL,
+      messages: [
+        {
+          role: 'system',
+          content: `You are a SaaS tool categorization assistant. Given a tool name, return ONLY one of these exact category strings:
+  communication, video_conferencing, project_management, crm, development, design, cloud_storage, hr, finance, security, analytics, marketing, other
+  Return only the category string, nothing else.`
+        },
+        {
+          role: 'user',
+          content: toolName
+        }
+      ],
+      temperature: 0,
+      max_tokens: 32
+    });
+  
+    const category = response.choices[0]?.message?.content?.trim().toLowerCase();
+    const valid = [
+      'communication', 'video_conferencing', 'project_management', 'crm',
+      'development', 'design', 'cloud_storage', 'hr', 'finance', 'security',
+      'analytics', 'marketing', 'other'
+    ];
+    return valid.includes(category) ? category : 'other';
+  }
+  
+  /**
+   * Generate a consolidation recommendation for overlapping tools.
+   * @param {Array} tools - Array of { tool_name, monthly_cost } in the same category
+   * @returns {string} Human-readable recommendation
+   */
+  async function generateOverlapRecommendation(tools) {
+    const toolList = tools
+      .map(t => `${t.tool_name}: Rs. ${t.monthly_cost?.toLocaleString('en-IN')}/month`)
+      .join('\n');
+
+      
