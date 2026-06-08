@@ -149,3 +149,55 @@ async function categorizeToolName(toolName) {
         temperature: 0.2,
         max_tokens: 512
       });
+      const content = response.choices[0]?.message?.content?.trim();
+  if (!content) throw new Error('Empty response from Groq');
+
+  try {
+    const jsonStr = content.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+    return JSON.parse(jsonStr);
+  } catch (err) {
+    throw new Error(`Failed to parse Groq forecast response: ${content}`);
+  }
+}
+
+/**
+ * Parse raw contract PDF text and extract key clauses.
+ * @param {string} rawText - Extracted text from the contract PDF
+ * @returns {Object} Parsed contract fields
+ */
+async function parseContractText(rawText) {
+  const response = await getGroqClient().chat.completions.create({
+    model: MODEL,
+    messages: [
+      {
+        role: 'system',
+        content: `You are a contract analysis assistant for SaaS vendor agreements. Extract key terms from the contract text.
+Return ONLY a valid JSON object with these fields:
+- auto_renewal (boolean): whether the contract auto-renews
+- notice_period_days (number or null): how many days notice required to cancel
+- price_escalation_percent (number or null): annual price increase percentage
+- penalty_clause (string or null): any early termination penalty
+- support_sla (string or null): support response time commitments
+- termination_clause (string or null): conditions for contract termination
+- summary (string): a 3-4 sentence summary of the key contract terms
+Do not include any text outside the JSON object.`
+      },
+      {
+        role: 'user',
+        content: rawText.substring(0, 8000) // Limit to avoid token overflow
+      }
+    ],
+    temperature: 0.1,
+    max_tokens: 1024
+  });
+
+  const content = response.choices[0]?.message?.content?.trim();
+  if (!content) throw new Error('Empty response from Groq');
+
+  try {
+    const jsonStr = content.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+    return JSON.parse(jsonStr);
+  } catch (err) {
+    throw new Error(`Failed to parse Groq contract response: ${content}`);
+  }
+}
