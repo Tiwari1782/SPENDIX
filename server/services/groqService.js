@@ -201,3 +201,55 @@ Do not include any text outside the JSON object.`
     throw new Error(`Failed to parse Groq contract response: ${content}`);
   }
 }
+
+/**
+ * Generate provisioning/deprovisioning task list for an employee workflow.
+ * @param {string} triggerType - 'onboarding', 'offboarding', or 'role_change'
+ * @param {Object} employee - { name, department, job_title }
+ * @param {Array} tools - Array of { tool_name, id } relevant to this employee
+ * @returns {Array} Array of { tool_id, task_description, action_type, assigned_to_email }
+ */
+async function generateWorkflowTasks(triggerType, employee, tools) {
+    const toolList = tools.map(t => `${t.tool_name} (ID: ${t.id})`).join(', ');
+  
+    const response = await getGroqClient().chat.completions.create({
+      model: MODEL,
+      messages: [
+        {
+          role: 'system',
+          content: `You are an IT workflow automation assistant. Generate a structured task list for employee ${triggerType}.
+  Return ONLY a valid JSON array where each item has:
+  - tool_id (number): the tool ID from the provided list
+  - task_description (string): clear action description
+  - action_type (string): one of "grant_access", "revoke_access", "transfer_data", "notify_vendor", "other"
+  Do not include any text outside the JSON array.`
+        },
+        {
+          role: 'user',
+          content: `Trigger: ${triggerType}\nEmployee: ${employee.name}, ${employee.department}, ${employee.job_title}\nTools: ${toolList}`
+        }
+      ],
+      temperature: 0.2,
+      max_tokens: 1024
+    });
+  
+    const content = response.choices[0]?.message?.content?.trim();
+    if (!content) throw new Error('Empty response from Groq');
+  
+    try {
+      const jsonStr = content.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+      return JSON.parse(jsonStr);
+    } catch (err) {
+      throw new Error(`Failed to parse Groq workflow response: ${content}`);
+    }
+  }
+  
+  module.exports = {
+    parseInvoice,
+    categorizeToolName,
+    generateOverlapRecommendation,
+    generateSpendForecast,
+    parseContractText,
+    generateWorkflowTasks
+  };
+  
