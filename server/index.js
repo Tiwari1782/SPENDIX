@@ -57,3 +57,60 @@ app.use('/api/contracts', contractRoutes);
 app.use('/api/benchmarks', benchmarkRoutes);
 app.use('/api/integrations', integrationRoutes);
 app.use('/api/users', userRoutes);
+// Health check
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+  
+  // ============================================================
+  // Error Handler (must be last middleware)
+  // ============================================================
+  app.use(errorHandler);
+  
+  // ============================================================
+  // Start Server with Socket.io
+  // ============================================================
+  const http = require('http');
+  const { Server } = require('socket.io');
+  
+  const server = http.createServer(app);
+  
+  const io = new Server(server, {
+    cors: {
+      origin: process.env.CLIENT_URL || 'http://localhost:5173',
+      methods: ['GET', 'POST'],
+      credentials: true,
+    }
+  });
+  
+  // Setup Socket.io logic
+  io.on('connection', (socket) => {
+    // Client joins a specific room (e.g. by companyId or userId)
+    socket.on('join_room', (roomId) => {
+      socket.join(roomId);
+    });
+  
+    // Client emits a notification state change
+    socket.on('update_notifications', ({ roomId, action, payload }) => {
+      // Broadcast the change to everyone else in the room
+      socket.to(roomId).emit('notifications_updated', { action, payload });
+    });
+  
+    socket.on('disconnect', () => {
+      // Handle disconnects if needed
+    });
+  });
+  
+  server.listen(PORT, () => {
+    console.log(`\n🚀 Spendix server running on http://localhost:${PORT}`);
+    console.log(`📊 API base: http://localhost:${PORT}/api`);
+    console.log(`🔑 Auth: POST /api/auth/login`);
+    console.log(`📡 Socket.io ready`);
+  
+    // Start cron job
+    renewalCron.start();
+    console.log('⏰ Renewal cron job scheduled (daily at 8:00 AM)\n');
+  });
+  
+  module.exports = server;
+  
