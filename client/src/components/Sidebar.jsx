@@ -286,3 +286,97 @@ export default function Sidebar() {
                           style={{ background: 'rgba(255,255,255,0.04)' }}
                         />
                       )}
+                      {/* Left active bar - positioned inside the button pill */}
+                      {isActive && (
+                        <motion.div
+                          layoutId="activeBar"
+                          className="absolute left-[3px] top-0 bottom-0 my-auto w-[3px] h-[20px] rounded-full"
+                          style={{ background: 'linear-gradient(180deg, #6366F1, #8B5CF6)', boxShadow: '0 0 6px rgba(99,102,241,0.6)' }}
+                        />
+                      )}
+
+                      <div
+                        className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${
+                          collapsed ? 'justify-center' : ''
+                        }`}
+                      >
+                        {/* Icon wrapper */}
+                        <div
+                          className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-all"
+                          style={{
+                            background: isActive
+                              ? 'linear-gradient(135deg, #6366F1, #4F46E5)'
+                              : 'rgba(255,255,255,0.05)',
+                            boxShadow: isActive ? '0 4px 12px rgba(99,102,241,0.4)' : 'none',
+                          }}
+                        >
+                          <item.icon
+                            size={14}
+                            style={{ color: isActive ? '#fff' : hoveredItem === item.to ? '#A5B4FC' : '#64748B' }}
+                          />
+                        </div>
+
+                        {/* Label + badge */}
+                        <AnimatePresence>
+                          {!collapsed && (
+                            <motion.div
+                              initial={{ opacity: 0, x: -6 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              exit={{ opacity: 0, x: -6 }}
+                              transition={{ duration: 0.18 }}
+                              className="flex items-center justify-between flex-1 min-w-0"
+                            >
+                              <span
+                                className="text-sm truncate leading-none"
+                                style={{
+                                  fontWeight: isActive ? 600 : 400,
+                                  color: isActive
+                                    ? '#E2E8F0'
+                                    : hoveredItem === item.to
+                                    ? '#CBD5E1'
+                                    : '#64748B',
+                                }}
+                              >
+                                {item.label}
+                              </span>
+                              {item.badge && (
+                                <span
+                                  className="ml-1.5 px-1.5 py-0.5 rounded-full text-white shrink-0"
+                                  style={{
+                                    fontSize: '9px',
+                                    fontWeight: 700,
+                                    background:
+                                      item.badgeColor === 'red'
+                                        ? 'linear-gradient(135deg, #EF4444, #DC2626)'
+                                        : 'linear-gradient(135deg, #F59E0B, #D97706)',
+                                    boxShadow:
+                                      item.badgeColor === 'red'
+                                        ? '0 2px 6px rgba(239,68,68,0.4)'
+                                        : '0 2px 6px rgba(245,158,11,0.4)',
+                                  }}
+                                >
+                                  {item.badge}
+                                </span>
+                              )}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+
+                        {/* Collapsed badge dot */}
+                        {collapsed && item.badge && (
+                          <span
+                            className="absolute top-0.5 right-0.5 w-2 h-2 rounded-full"
+                            style={{
+                              background: item.badgeColor === 'red' ? '#EF4444' : '#F59E0B',
+                            }}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </NavLink>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </nav>
