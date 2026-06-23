@@ -177,3 +177,112 @@ export default function Sidebar() {
               )}
             </AnimatePresence>
           </div>
+           {/* Notification bell — only expanded */}
+        <AnimatePresence>
+          {!collapsed && (
+            <motion.button
+              onClick={() => navigate('/notifications')}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="ml-auto relative p-1.5 rounded-lg transition-colors hover:bg-white/5"
+            >
+              <RiNotification3Line className="w-4 h-4 text-slate-400" />
+              {totalAlerts > 0 && (
+                <span
+                  className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full text-white flex items-center justify-center"
+                  style={{ background: '#EF4444', fontSize: '7px', fontWeight: 700 }}
+                >
+                  {totalAlerts}
+                </span>
+              )}
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* ══ SEARCH (expanded only) ══ */}
+      <AnimatePresence>
+        {!collapsed && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="px-3 pt-3 pb-1 shrink-0"
+          >
+            <div
+              className="flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-all"
+              style={{
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.07)',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)')}
+            >
+              <RiSearchLine className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+              <span className="text-xs text-slate-500">Quick search…</span>
+              <span
+                className="ml-auto text-[9px] font-semibold px-1.5 py-0.5 rounded border text-slate-600"
+                style={{ borderColor: 'rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)' }}
+              >
+                ⌘K
+              </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ══ NAVIGATION ══ */}
+      <nav className="flex-1 overflow-y-auto py-3 space-y-4 relative z-10 scrollbar-none">
+        {navGroups.map((group) => (
+          <div key={group.label}>
+            {/* Group label */}
+            <AnimatePresence>
+              {!collapsed && (
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="px-4 mb-1.5 text-[9px] font-bold uppercase tracking-[0.18em]"
+                  style={{ color: 'rgba(99,102,241,0.6)' }}
+                >
+                  {group.label}
+                </motion.p>
+              )}
+            </AnimatePresence>
+
+            <div className="space-y-0.5 px-2">
+              {group.items.map((item) => {
+                const isActive = location.pathname === item.to;
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className="block outline-none"
+                    onMouseEnter={() => setHoveredItem(item.to)}
+                    onMouseLeave={() => setHoveredItem(null)}
+                  >
+                    <div className="relative">
+                      {/* Active background pill */}
+                      {isActive && (
+                        <motion.div
+                          layoutId="activeNavBg"
+                          className="absolute inset-0 rounded-xl"
+                          style={{
+                            background: 'linear-gradient(135deg, rgba(99,102,241,0.25) 0%, rgba(139,92,246,0.15) 100%)',
+                            border: '1px solid rgba(99,102,241,0.2)',
+                          }}
+                          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                        />
+                      )}
+
+                      {/* Hover background */}
+                      {!isActive && hoveredItem === item.to && (
+                        <motion.div
+                          className="absolute inset-0 rounded-xl"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          style={{ background: 'rgba(255,255,255,0.04)' }}
+                        />
+                      )}
