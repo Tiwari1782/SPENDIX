@@ -380,3 +380,103 @@ export default function Sidebar() {
           </div>
         ))}
       </nav>
+         {/* ══ HEALTH SCORE MINI CARD (expanded only) ══ */}
+         <AnimatePresence>
+        {!collapsed && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            className="mx-3 mb-3 px-3 py-3 rounded-2xl shrink-0 relative overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(139,92,246,0.08) 100%)',
+              border: '1px solid rgba(99,102,241,0.18)',
+            }}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-1.5">
+                <RiShieldCheckLine className="w-3.5 h-3.5 text-indigo-400" />
+                <span className="text-[11px] font-semibold text-slate-400">SaaS Health</span>
+              </div>
+              <HealthPill score={healthScore} />
+            </div>
+            <div className="flex items-end gap-2">
+              <span
+                className="text-2xl font-bold text-white leading-none"
+                style={{ fontFamily: "'DM Serif Display', serif" }}
+              >
+                {healthScore}
+              </span>
+              <div className="flex-1 mb-0.5">
+                <SparkBars color="#6366F1" />
+              </div>
+            </div>
+            {/* Progress bar */}
+            <div className="mt-2 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
+              <motion.div
+                className="h-full rounded-full"
+                style={{ background: 'linear-gradient(90deg, #6366F1, #8B5CF6)' }}
+                initial={{ width: 0 }}
+                animate={{ width: `${healthScore}%` }}
+                transition={{ duration: 1, ease: 'easeOut', delay: 0.3 }}
+              />
+            </div>
+            <p className="text-[10px] text-slate-500 mt-1.5">
+              {totalAlerts} active alerts this week
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ══ USER + COLLAPSE ══ */}
+      <div
+        className="shrink-0 px-3 pb-3 pt-2 relative z-10"
+        style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
+      >
+        {user && (
+          <AnimatePresence>
+            {!collapsed ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center gap-2.5 px-2 py-2 mb-2 rounded-xl transition-all cursor-pointer"
+                style={{
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)')}
+              >
+                {/* Avatar */}
+                <div
+                  className="w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-bold shrink-0 relative"
+                  style={{
+                    background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
+                    boxShadow: '0 4px 12px rgba(99,102,241,0.4)',
+                  }}
+                >
+                  {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                  {/* Online dot */}
+                  <span
+                    className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2"
+                    style={{ background: '#10B981', borderColor: '#0F172A' }}
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-200 leading-none truncate">
+                    {user.name || 'Admin'}
+                  </p>
+                  <p className="text-[10px] text-slate-500 mt-0.5 truncate capitalize">
+                    {user.role?.replace('_', ' ') || 'Administrator'}
+                  </p>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="p-1 rounded-lg transition-colors hover:text-red-400 text-slate-600"
+                  title="Logout"
+                >
+                  <RiLogoutBoxRLine size={14} />
+                </button>
+              </motion.div>
+            ) : (
