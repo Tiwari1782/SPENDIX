@@ -480,3 +480,63 @@ export default function Sidebar() {
                 </button>
               </motion.div>
             ) : (
+                /* Collapsed avatar */
+              <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex justify-center mb-2"
+            >
+              <div
+                className="w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-bold relative cursor-pointer"
+                style={{
+                  background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
+                  boxShadow: '0 4px 12px rgba(99,102,241,0.35)',
+                }}
+                onClick={handleLogout}
+                title="Logout"
+              >
+                {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                <span
+                  className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2"
+                  style={{ background: '#10B981', borderColor: '#0F172A' }}
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
+
+      {/* Collapse toggle */}
+      <motion.button
+        onClick={() => setCollapsed(!collapsed)}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.97 }}
+        className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-medium transition-all"
+        style={{
+          color: '#475569',
+          background: 'rgba(255,255,255,0.03)',
+          border: '1px solid rgba(255,255,255,0.05)',
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
+          e.currentTarget.style.color = '#CBD5E1';
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+          e.currentTarget.style.color = '#475569';
+        }}
+      >
+        {collapsed ? (
+          <RiMenuUnfoldLine size={15} />
+        ) : (
+          <>
+            <RiMenuFoldLine size={15} />
+            <span>Collapse</span>
+          </>
+        )}
+      </motion.button>
+    </div>
+  </motion.aside>
+);
+}
