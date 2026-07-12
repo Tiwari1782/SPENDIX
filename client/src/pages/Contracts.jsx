@@ -235,4 +235,62 @@ function StatusBadge({ status }) {
             <p className="text-xs text-slate-400 mt-1 max-w-xs">Upload a contract above and Groq AI will extract renewal terms, escalation clauses, and risk flags</p>
           </div>
         )}
-      </motion.div> 
+      </motion.div>
+           {/* ══ VIEW CONTRACT MODAL ══ */}
+           <AnimatePresence>
+        {viewContract && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40"
+              style={{ background: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(6px)' }}
+              onClick={() => setViewContract(null)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 20 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 pointer-events-none"
+            >
+              <div
+                className="bg-white rounded-2xl w-full max-w-lg max-h-[80vh] flex flex-col pointer-events-auto overflow-hidden"
+                style={{ boxShadow: '0 32px 80px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.05)' }}
+              >
+                {/* Modal header */}
+                <div
+                  className="relative px-6 py-5 shrink-0 overflow-hidden"
+                  style={{
+                    background: 'linear-gradient(135deg, #0F172A 0%, #1E1B4B 100%)',
+                    borderBottom: '1px solid rgba(99,102,241,0.2)',
+                  }}
+                >
+                  <div className="absolute inset-0 opacity-[0.05]"
+                    style={{
+                      backgroundImage: 'linear-gradient(rgba(99,102,241,1) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,1) 1px, transparent 1px)',
+                      backgroundSize: '24px 24px',
+                    }}
+                  />
+                  <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full pointer-events-none"
+                    style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.3) 0%, transparent 70%)' }}
+                  />
+                  <div className="relative z-10 flex items-start justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+                          style={{ background: 'rgba(99,102,241,0.25)', border: '1px solid rgba(99,102,241,0.4)' }}>
+                          <RiFilePaper2Line className="w-3.5 h-3.5 text-indigo-300" />
+                        </div>
+                        <h3 className="text-base font-bold text-white" style={{ fontFamily: "'DM Serif Display', serif" }}>
+                          {viewContract.tool_name} — Contract
+                        </h3>
+                      </div>
+                      <p className="text-xs text-slate-400 ml-9">AI-parsed contract details</p>
+                    </div>
+                    <button onClick={() => setViewContract(null)}
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all">
+                      <RiCloseLine className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+ 
