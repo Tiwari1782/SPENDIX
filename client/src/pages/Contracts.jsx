@@ -294,3 +294,55 @@ function StatusBadge({ status }) {
                   </div>
                 </div>
  
+            {/* Modal body */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                  {viewContract.groq_summary && (
+                    <div className="rounded-xl p-4" style={{ background: '#EEF2FF', border: '1px solid #C7D2FE' }}>
+                      <p className="text-xs font-bold text-indigo-700 uppercase tracking-wide mb-1.5">AI Summary</p>
+                      <p className="text-sm text-indigo-900 leading-relaxed">{viewContract.groq_summary}</p>
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    {[
+                      { label: 'Auto-Renewal', value: viewContract.parsed_auto_renewal ? 'Yes — action needed' : 'No', danger: viewContract.parsed_auto_renewal },
+                      { label: 'Notice Period', value: viewContract.parsed_notice_period_days ? `${viewContract.parsed_notice_period_days} days` : '—' },
+                      { label: 'Price Escalation', value: viewContract.parsed_price_escalation_percent ? `${viewContract.parsed_price_escalation_percent}%` : '—', danger: !!viewContract.parsed_price_escalation_percent },
+                    ].map((row, i) => (
+                      <div key={i} className="flex items-center justify-between py-2.5 border-b border-slate-50 last:border-0">
+                        <span className="text-xs text-slate-400 font-medium">{row.label}</span>
+                        <span className={`text-sm font-semibold ${row.danger ? 'text-red-500' : 'text-slate-700'}`}>{row.value}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {viewContract.parsed_penalty_clause && (
+                    <div className="rounded-xl p-4" style={{ background: '#FEF2F2', border: '1px solid #FECACA' }}>
+                      <p className="text-xs font-bold text-red-700 uppercase tracking-wide mb-1.5">Penalty Clause</p>
+                      <p className="text-sm text-red-800 leading-relaxed">{viewContract.parsed_penalty_clause}</p>
+                    </div>
+                  )}
+
+                  {viewContract.parsed_termination_clause && (
+                    <div className="rounded-xl p-4" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Termination Clause</p>
+                      <p className="text-sm text-slate-700 leading-relaxed">{viewContract.parsed_termination_clause}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Modal footer */}
+                <div className="px-6 py-4 shrink-0 flex items-center justify-end" style={{ borderTop: '1px solid #F1F5F9' }}>
+                  <button onClick={() => setViewContract(null)}
+                    className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 transition-colors">
+                    Close <RiCloseLine className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
