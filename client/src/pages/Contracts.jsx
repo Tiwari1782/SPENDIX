@@ -136,4 +136,103 @@ function StatusBadge({ status }) {
             </p>
           </div>
         </motion.div>
-  
+
+     {/* ══ STAT CARDS ══ */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard icon={RiFilePaper2Line}     label="Total Contracts"  value={currentContracts.length} color="indigo"  sub="Across all tools" />
+        <StatCard icon={RiCheckboxCircleLine} label="Parsed"           value={parsed}    color="emerald" sub={`${failed} failed`} />
+        <StatCard icon={RiAlertLine}          label="Auto-Renewal ON"  value={autoRenew}  color="amber"   sub="Needs review" />
+        <StatCard icon={RiShieldCheckLine}    label="Price Escalation" value={escalation}  color="red"     sub="Contracts with increases" />
+      </div>
+
+      {/* ══ UPLOAD ══ */}
+      <motion.div variants={itemVariants}>
+        <ContractUpload tools={tools} onUpload={handleUpload} uploading={uploading} />
+      </motion.div>
+
+      {/* ══ CONTRACTS TABLE ══ */}
+      <motion.div
+        variants={itemVariants}
+        className="bg-white rounded-2xl border border-slate-100 overflow-hidden"
+        style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
+      >
+        <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #F1F5F9' }}>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-slate-800">All Contracts</h3>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#EEF2FF', color: '#6366F1' }}>
+              {currentContracts.length}
+            </span>
+          </div>
+        </div>
+
+        {currentContracts.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
+                  {['Tool', 'File', 'Status', 'Auto-Renewal', 'Escalation', 'Actions'].map(h => (
+                    <th key={h} className="px-5 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wide whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {currentContracts.map((c, i) => (
+                  <motion.tr
+                    key={c.id || i}
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.04 }}
+                    className="border-b border-slate-50 hover:bg-slate-50/80 transition-colors"
+                  >
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white shrink-0"
+                          style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}>
+                          {c.tool_name?.charAt(0)?.toUpperCase() || '?'}
+                        </div>
+                        <span className="font-semibold text-slate-700 truncate max-w-[120px]">{c.tool_name}</span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3.5 text-slate-400 text-xs truncate max-w-[140px]">{c.file_name}</td>
+                    <td className="px-5 py-3.5"><StatusBadge status={c.parse_status} /></td>
+                    <td className="px-5 py-3.5">
+                      {c.parsed_auto_renewal ? (
+                        <span className="flex items-center gap-1 text-xs font-semibold text-amber-600">
+                          <RiAlertLine className="w-3 h-3" /> Active
+                        </span>
+                      ) : <span className="text-slate-300">—</span>}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      {c.parsed_price_escalation_percent ? (
+                        <span className="text-xs font-bold text-red-500">{c.parsed_price_escalation_percent}%</span>
+                      ) : <span className="text-slate-300">—</span>}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => handleView(c)}
+                          className="flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
+                          <RiEyeLine className="w-3.5 h-3.5" /> View
+                        </button>
+                        <div className="w-px h-3 bg-slate-200" />
+                        <button onClick={() => handleDelete(c.id)}
+                          className="flex items-center gap-1 text-xs font-semibold text-red-400 hover:text-red-600 transition-colors">
+                          <RiDeleteBin5Line className="w-3.5 h-3.5" /> Delete
+                        </button>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-16 text-center px-6">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
+              style={{ background: 'linear-gradient(135deg, #EEF2FF, #F5F3FF)', border: '1px solid #C7D2FE' }}>
+              <RiFilePaper2Line className="w-7 h-7 text-indigo-400" />
+            </div>
+            <p className="text-sm font-semibold text-slate-600">No contracts uploaded yet</p>
+            <p className="text-xs text-slate-400 mt-1 max-w-xs">Upload a contract above and Groq AI will extract renewal terms, escalation clauses, and risk flags</p>
+          </div>
+        )}
+      </motion.div> 
