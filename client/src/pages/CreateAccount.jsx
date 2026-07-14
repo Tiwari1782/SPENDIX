@@ -183,4 +183,89 @@ export default function CreateAccount() {
               <span className="text-2xl font-bold text-white" style={{ fontFamily: "'DM Serif Display', serif" }}>Spendix</span>
             </Link>
           </div>
-  
+        {/* Dynamic panel content */}
+        <div className="relative z-10">
+          <AnimatePresence mode="wait">
+            <motion.div key={step}
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}>
+              <p className="text-xs font-bold uppercase tracking-widest text-indigo-400 mb-4">{panel.eyebrow}</p>
+              <h2 className="text-4xl font-bold text-white leading-snug mb-5"
+                style={{ fontFamily: "'DM Serif Display', serif" }}>
+                {panel.title}
+              </h2>
+              <p className="text-slate-400 text-base leading-relaxed mb-10">{panel.body}</p>
+
+              {/* Stat pill */}
+              <div className="inline-flex flex-col rounded-2xl px-6 py-5 border"
+                style={{ background: 'rgba(99,102,241,0.08)', borderColor: 'rgba(99,102,241,0.2)' }}>
+                <span className="text-4xl font-bold text-white mb-1" style={{ fontFamily: "'DM Serif Display', serif" }}>
+                  {panel.stat.val}
+                </span>
+                <span className="text-slate-400 text-sm">{panel.stat.label}</span>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Step dots */}
+        <div className="relative z-10 flex items-center gap-3">
+          {steps.map(s => (
+            <div key={s.num} className="flex items-center gap-2">
+              <motion.div className="w-2 h-2 rounded-full" animate={{ scale: step === s.num ? 1.4 : 1 }}
+                style={{ background: step === s.num ? '#6366F1' : step > s.num ? '#4ADE80' : '#334155' }} />
+              {step === s.num && (
+                <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-slate-400">
+                  {s.label}
+                </motion.span>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── RIGHT PANEL — form ── */}
+      <div className="flex-1 flex items-center justify-center p-6 md:p-12 bg-white overflow-y-auto">
+        <div className="w-full max-w-md">
+
+          {/* Mobile logo */}
+          <div className="flex items-center justify-center gap-2 mb-8 lg:hidden">
+            <svg width="28" height="28" viewBox="0 0 48 48" fill="none">
+              <rect x="6"  y="28" width="9" height="14" rx="2.5" fill="#6366F1" opacity="0.5"/>
+              <rect x="19" y="17" width="9" height="25" rx="2.5" fill="#6366F1" opacity="0.75"/>
+              <rect x="32" y="6"  width="9" height="36" rx="2.5" fill="#6366F1"/>
+            </svg>
+            <span className="text-xl font-bold text-slate-900" style={{ fontFamily: "'DM Serif Display', serif" }}>Spendix</span>
+          </div>
+
+          {/* Progress bar */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-3">
+              {steps.map((s, i) => (
+                <div key={s.num} className="flex items-center" style={{ flex: i < steps.length - 1 ? '1' : 'none' }}>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <motion.div
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all"
+                      animate={{
+                        background: step > s.num ? '#6366F1' : step === s.num ? '#EEF2FF' : '#F8FAFC',
+                        borderColor: step >= s.num ? '#6366F1' : '#E2E8F0',
+                        color: step > s.num ? '#fff' : step === s.num ? '#6366F1' : '#94A3B8',
+                      }}>
+                      {step > s.num ? <RiCheckLine className="w-3.5 h-3.5" /> : s.num}
+                    </motion.div>
+                    <span className="text-xs font-medium hidden sm:block"
+                      style={{ color: step >= s.num ? '#6366F1' : '#94A3B8' }}>
+                      {s.label}
+                    </span>
+                  </div>
+                  {i < steps.length - 1 && (
+                    <div className="flex-1 h-px mx-3 rounded-full overflow-hidden bg-slate-200">
+                      <motion.div className="h-full rounded-full bg-indigo-500"
+                        animate={{ width: step > s.num ? '100%' : '0%' }}
+                        transition={{ duration: 0.4 }} />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
