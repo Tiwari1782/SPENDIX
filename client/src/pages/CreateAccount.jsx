@@ -269,3 +269,123 @@ export default function CreateAccount() {
               ))}
             </div>
           </div>
+   {/* Error */}
+   <AnimatePresence>
+            {error && (
+              <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="mb-5 p-3.5 rounded-xl border border-red-100 bg-red-50 text-sm text-red-600 flex items-center gap-2">
+                <span className="shrink-0">⚠</span> {error}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Form steps */}
+          <AnimatePresence mode="wait" custom={dir}>
+            {/* ── STEP 1 ── */}
+            {step === 1 && (
+              <motion.div key="step1" variants={slideIn(dir)} initial="hidden" animate="visible" exit="exit" className="space-y-5">
+                <div>
+                  <h1 className="text-2xl font-bold text-slate-900" style={{ fontFamily: "'DM Serif Display', serif" }}>Create your account</h1>
+                  <p className="text-slate-500 text-sm mt-1">Start your 14-day free trial. No credit card needed.</p>
+                </div>
+
+                <InputField icon={RiUserLine} label="Full Name" placeholder="Arjun Kumar"
+                  type="text" value={form.name} onChange={e => set('name', e.target.value)} />
+
+                <InputField icon={RiMailLine} label="Work Email" placeholder="arjun@yourcompany.com"
+                  type="email" value={form.email} onChange={e => set('email', e.target.value)} />
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Password</label>
+                  <div className="relative group">
+                    <RiLockLine className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                    <input
+                      type={showPw ? 'text' : 'password'} value={form.password}
+                      onChange={e => set('password', e.target.value)} placeholder="Min 6 characters"
+                      className="w-full pl-10 pr-12 py-3 text-sm text-slate-900 bg-slate-50 border border-slate-200 rounded-xl transition-all outline-none focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 placeholder:text-slate-400"
+                    />
+                    <button type="button" onClick={() => setShowPw(!showPw)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                      {showPw ? <RiEyeOffLine className="w-4 h-4" /> : <RiEyeLine className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <PasswordStrength password={form.password} />
+                </div>
+              </motion.div>
+            )}
+
+            {/* ── STEP 2 ── */}
+            {step === 2 && (
+              <motion.div key="step2" variants={slideIn(dir)} initial="hidden" animate="visible" exit="exit" className="space-y-5">
+                <div>
+                  <h1 className="text-2xl font-bold text-slate-900" style={{ fontFamily: "'DM Serif Display', serif" }}>About your company</h1>
+                  <p className="text-slate-500 text-sm mt-1">Used for peer benchmarking against similar companies.</p>
+                </div>
+
+                <InputField icon={RiBuildingLine} label="Company Name" placeholder="Acme Technologies Pvt Ltd"
+                  type="text" value={form.company_name} onChange={e => set('company_name', e.target.value)} />
+
+                <InputField icon={RiGlobalLine} label="Company Domain" hint="optional" placeholder="acme.in"
+                  type="text" value={form.company_domain} onChange={e => set('company_domain', e.target.value)} />
+
+                <SelectField label="Industry" value={form.industry} onChange={e => set('industry', e.target.value)}>
+                  <option value="">Select your industry</option>
+                  {industries.map(i => <option key={i} value={i}>{i}</option>)}
+                </SelectField>
+
+                <SelectField label="Employee Count" value={form.employee_count_range} onChange={e => set('employee_count_range', e.target.value)}>
+                  <option value="">Select headcount range</option>
+                  {empRanges.map(r => <option key={r} value={r}>{r} employees</option>)}
+                </SelectField>
+
+                {/* Benchmark note */}
+                <div className="flex items-start gap-3 p-3.5 rounded-xl border"
+                  style={{ background: '#F0FDF4', borderColor: '#BBF7D0' }}>
+                  <RiSparklingLine className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
+                  <p className="text-xs text-emerald-700 leading-relaxed">
+                    We use your industry and size to show peer benchmarks — you'll see how your SaaS spend compares to similar companies in India.
+                  </p>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ── STEP 3 ── */}
+            {step === 3 && (
+              <motion.div key="step3" variants={slideIn(dir)} initial="hidden" animate="visible" exit="exit" className="space-y-4">
+                <div>
+                  <h1 className="text-2xl font-bold text-slate-900" style={{ fontFamily: "'DM Serif Display', serif" }}>What's your role?</h1>
+                  <p className="text-slate-500 text-sm mt-1">This sets your default dashboard view. Change it anytime.</p>
+                </div>
+
+                {roles.map((r, i) => (
+                  <motion.button key={r.label} type="button" onClick={() => set('role', r.label)}
+                    initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
+                    className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all"
+                    style={{
+                      borderColor: form.role === r.label ? r.color : '#E2E8F0',
+                      background: form.role === r.label ? r.bg : 'white',
+                      boxShadow: form.role === r.label ? `0 4px 16px ${r.color}20` : 'none'
+                    }}>
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors"
+                      style={{ background: form.role === r.label ? r.color : '#F1F5F9' }}>
+                      <r.icon className="w-5 h-5 transition-colors"
+                        style={{ color: form.role === r.label ? 'white' : '#64748B' }} />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-sm text-slate-900">{r.label}</p>
+                      <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{r.desc}</p>
+                    </div>
+                    <motion.div className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0"
+                      style={{ borderColor: form.role === r.label ? r.color : '#E2E8F0', background: form.role === r.label ? r.color : 'transparent' }}
+                      animate={{ scale: form.role === r.label ? 1 : 0.85 }}>
+                      {form.role === r.label && <RiCheckLine className="w-3 h-3 text-white" />}
+                    </motion.div>
+                  </motion.button>
+                ))}
+
+                <p className="text-xs text-slate-400 text-center pt-2">
+                  You can invite teammates with different roles from Settings after setup.
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
