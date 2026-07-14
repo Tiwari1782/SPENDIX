@@ -110,3 +110,77 @@ const fadeUp = {
       </div>
     );
   }
+  /* ─── Main Component ─── */
+export default function CreateAccount() {
+    const [step, setStep] = useState(1);
+    const [dir, setDir]   = useState(1);
+    const [showPw, setShowPw] = useState(false);
+    const [form, setForm] = useState({
+      name: '', email: '', password: '',
+      company_name: '', company_domain: '', industry: '', employee_count_range: '',
+      role: ''
+    });
+    const [error, setError]   = useState('');
+    const [loading, setLoading] = useState(false);
+    const { register } = useAuth();
+    const navigate     = useNavigate();
+  
+    const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  
+    const canProceed =
+      step === 1 ? (form.name.trim() && form.email.trim() && form.password.length >= 6) :
+      step === 2 ? form.company_name.trim() :
+      !!form.role;
+  
+    const goNext = () => { if (!canProceed) return; setDir(1); setStep(s => s + 1); };
+    const goBack = () => { setDir(-1); setStep(s => s - 1); };
+  
+    const handleSubmit = async () => {
+      setError('');
+      setLoading(true);
+      try {
+        await register(form);
+        navigate('/onboarding');
+      } catch (err) {
+        setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    const panel = panels[step - 1];
+  
+    return (
+      <div className="min-h-screen flex" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+  
+        {/* ── LEFT PANEL ── */}
+        <div className="hidden lg:flex lg:w-[45%] relative flex-col justify-between p-12 overflow-hidden"
+          style={{ background: 'linear-gradient(160deg, #0F172A 0%, #1E1B4B 50%, #0F172A 100%)' }}>
+  
+          {/* Grid */}
+          <div className="absolute inset-0 opacity-[0.07]"
+            style={{ backgroundImage: 'linear-gradient(rgba(99,102,241,1) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,1) 1px, transparent 1px)', backgroundSize: '52px 52px' }} />
+  
+          {/* Orbs */}
+          <motion.div className="absolute top-1/3 right-0 w-80 h-80 rounded-full pointer-events-none"
+            style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.2), transparent 70%)' }}
+            animate={{ scale: [1, 1.2, 1], y: [0, -24, 0] }}
+            transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }} />
+          <motion.div className="absolute bottom-1/4 left-0 w-60 h-60 rounded-full pointer-events-none"
+            style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.18), transparent 70%)' }}
+            animate={{ scale: [1.1, 1, 1.1], y: [0, 20, 0] }}
+            transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }} />
+  
+          {/* Logo */}
+          <div className="relative z-10">
+            <Link to="/" className="flex items-center gap-2.5">
+              <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+                <rect x="6"  y="28" width="9" height="14" rx="2.5" fill="#6366F1" opacity="0.5"/>
+                <rect x="19" y="17" width="9" height="25" rx="2.5" fill="#6366F1" opacity="0.75"/>
+                <rect x="32" y="6"  width="9" height="36" rx="2.5" fill="#6366F1"/>
+              </svg>
+              <span className="text-2xl font-bold text-white" style={{ fontFamily: "'DM Serif Display', serif" }}>Spendix</span>
+            </Link>
+          </div>
+  
