@@ -389,3 +389,52 @@ export default function CreateAccount() {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Nav buttons */}
+          <div className="flex items-center justify-between mt-8">
+            {step > 1 ? (
+              <motion.button whileHover={{ x: -2 }} onClick={goBack}
+                className="flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors px-3 py-2 rounded-xl hover:bg-slate-100">
+                <RiArrowLeftLine className="w-4 h-4" /> Back
+              </motion.button>
+            ) : <div />}
+
+            {step < 3 ? (
+              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={goNext}
+                disabled={!canProceed}
+                className="flex items-center gap-2 text-sm font-bold text-white px-6 py-3 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ background: canProceed ? 'linear-gradient(135deg, #6366F1, #4F46E5)' : '#E2E8F0', boxShadow: canProceed ? '0 4px 16px rgba(99,102,241,0.35)' : 'none', color: canProceed ? 'white' : '#94A3B8' }}>
+                Continue <RiArrowRightLine className="w-4 h-4" />
+              </motion.button>
+            ) : (
+              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                onClick={handleSubmit} disabled={loading || !canProceed}
+                className="flex items-center gap-2 text-sm font-bold text-white px-6 py-3 rounded-xl transition-all disabled:opacity-50"
+                style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)', boxShadow: '0 4px 16px rgba(99,102,241,0.35)' }}>
+                {loading ? (
+                  <>
+                    <motion.span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
+                      animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: 'linear' }} />
+                    Creating…
+                  </>
+                ) : (
+                  <> Create Account <RiArrowRightLine className="w-4 h-4" /></>
+                )}
+              </motion.button>
+            )}
+          </div>
+
+          <p className="text-sm text-slate-400 text-center mt-6">
+            Already have an account?{' '}
+            <Link to="/login" className="text-indigo-600 font-semibold hover:text-indigo-700 transition-colors">Sign in</Link>
+          </p>
+          <p className="text-xs text-slate-300 text-center mt-3">
+            By creating an account you agree to our{' '}
+            <a href="#" className="text-indigo-400 hover:underline">Terms</a> and{' '}
+            <a href="#" className="text-indigo-400 hover:underline">Privacy Policy</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
