@@ -105,3 +105,94 @@ function MetricCard({ title, value, prefix, suffix, color, icon: Icon, trend, tr
     </motion.div>
   );
 }
+
+/* ─── Section Header ─── */
+function SectionHeader({ title, action, actionLabel }) {
+    return (
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-semibold text-slate-800 text-sm">{title}</h3>
+        {action && (
+          <button
+            onClick={action}
+            className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
+          >
+            {actionLabel} <RiArrowRightLine className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+    );
+  }
+  
+  /* ─── Risk Badge ─── */
+  function RiskBadge({ days }) {
+    if (days <= 30) return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-600">{days}d</span>;
+    if (days <= 60) return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700">{days}d</span>;
+    return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">{days}d</span>;
+  }
+  
+  /* ─── Status Dot ─── */
+  function StatusDot({ color }) {
+    const map = { red: 'bg-red-400', amber: 'bg-amber-400', green: 'bg-emerald-400', indigo: 'bg-indigo-400' };
+    return <span className={`inline-block w-2 h-2 rounded-full ${map[color] || map.indigo}`} />;
+  }
+  
+  /* ─── Empty State ─── */
+  function EmptyState({ icon: Icon, message }) {
+    return (
+      <div className="flex flex-col items-center justify-center py-8 text-center">
+        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mb-2">
+          <Icon className="w-5 h-5 text-slate-400" />
+        </div>
+        <p className="text-sm text-slate-400">{message}</p>
+      </div>
+    );
+  }
+  
+  /* ─── Activity item ─── */
+  function ActivityItem({ icon: Icon, color, title, sub, time }) {
+    const map = { red: 'bg-red-50 text-red-500', amber: 'bg-amber-50 text-amber-600', indigo: 'bg-indigo-50 text-indigo-600', emerald: 'bg-emerald-50 text-emerald-600' };
+    return (
+      <div className="flex items-start gap-3 py-2.5 border-b border-slate-50 last:border-0">
+        <div className={`mt-0.5 p-1.5 rounded-lg ${map[color] || map.indigo} shrink-0`}>
+          <Icon className="w-3.5 h-3.5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-slate-700 truncate">{title}</p>
+          <p className="text-xs text-slate-400">{sub}</p>
+        </div>
+        <p className="text-xs text-slate-300 shrink-0">{time}</p>
+      </div>
+    );
+  }
+  
+  /* ─── Main Dashboard ─── */
+  export default function Dashboard() {
+    const { companyId } = useAuth();
+    const navigate = useNavigate();
+    const [summary, setSummary]       = useState(null);
+    const [tools, setTools]           = useState([]);
+    const [renewals, setRenewals]     = useState([]);
+    const [offboarding, setOffboarding] = useState([]);
+    const [loading, setLoading]       = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [lastUpdated, setLastUpdated] = useState(new Date());
+  
+    const fetchAll = async (silent = false) => {
+      if (!companyId) return;
+      if (!silent) setLoading(true); else setRefreshing(true);
+      try {
+        const [s, t, r, o] = await Promise.all([
+          api.getSummary(companyId),
+          api.getTools(companyId),
+          api.getRenewals(companyId),
+          api.getOffboarding(companyId)
+        ]);
+        setSummary(s.data);
+        setTools(t.data || []);
+        setRenewals(r.data || []);
+        setOffboarding(o.data || []);
+        setLastUpdated(new Date());
+      } catch (_) {}
+      finally { setLoading(false); setRefreshing(false); }
+    };
+  
