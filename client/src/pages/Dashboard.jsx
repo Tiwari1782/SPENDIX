@@ -515,3 +515,61 @@ function SectionHeader({ title, action, actionLabel }) {
             )}
           </div>
         </motion.div>
+
+        {/* Activity Feed */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.65, duration: 0.5 }}
+          className="bg-white rounded-2xl border border-slate-100 p-5"
+          style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
+        >
+          <SectionHeader title="Recent Alerts" />
+          <div>
+            {activities.length > 0 ? activities.map((a, i) => (
+              <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 + i * 0.08 }}>
+                <ActivityItem {...a} />
+              </motion.div>
+            )) : (
+              <EmptyState icon={RiShieldCheckLine} message="All clear — no alerts" />
+            )}
+          </div>
+          {activities.length > 0 && (
+            <button onClick={() => navigate('/renewals')} className="mt-3 w-full text-center text-xs text-indigo-600 hover:text-indigo-700 font-medium py-2 rounded-xl hover:bg-indigo-50 transition-colors">
+              View all alerts
+            </button>
+          )}
+        </motion.div>
+
+      </div>
+
+      {/* ── Offboarding Risk Banner (only if risks exist) ── */}
+      <AnimatePresence>
+        {offboarding.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="bg-red-50 border border-red-100 rounded-2xl p-4 flex items-center gap-4"
+          >
+            <div className="p-2 bg-red-100 rounded-xl shrink-0">
+              <RiUserUnfollowLine className="w-5 h-5 text-red-500" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-red-700">
+                {offboarding.length} ex-employee{offboarding.length > 1 ? 's' : ''} still have active SaaS licenses
+              </p>
+              <p className="text-xs text-red-500 mt-0.5">
+                This is a security risk. Revoke access immediately to prevent unauthorized system access.
+              </p>
+            </div>
+            <button onClick={() => navigate('/offboarding')} className="shrink-0 flex items-center gap-1.5 text-sm font-semibold text-red-600 hover:text-red-700 bg-white border border-red-200 px-3 py-1.5 rounded-xl transition-all hover:shadow-sm">
+              Review <RiExternalLinkLine className="w-3.5 h-3.5" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+    </motion.div>
+  );
+}
