@@ -414,3 +414,104 @@ function SectionHeader({ title, action, actionLabel }) {
           )}
         </motion.div>
       </div>
+
+      {/* ── Bottom Row ── */}
+      <div className="grid lg:grid-cols-3 gap-4">
+
+        {/* Top Wasteful Tools */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.55, duration: 0.5 }}
+          className="bg-white rounded-2xl border border-slate-100 p-5"
+          style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
+        >
+          <SectionHeader title="Top Wasted Spend" actionLabel="View All" action={() => navigate('/licenses')} />
+          <div className="space-y-0">
+            <AnimatePresence>
+              {topWaste.length > 0 ? topWaste.map((t, i) => {
+                const w = t.monthly_waste || 0;
+                const pct = waste > 0 ? (w / waste) * 100 : 0;
+                return (
+                  <motion.div
+                    key={t.id || i}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.6 + i * 0.07 }}
+                    className="py-3 border-b border-slate-50 last:border-0"
+                  >
+                    <div className="flex items-center justify-between mb-1.5 cursor-pointer hover:opacity-80" onClick={() => navigate('/licenses')}>
+                      <div className="flex items-center gap-2">
+                        <StatusDot color={pct > 50 ? 'red' : pct > 25 ? 'amber' : 'green'} />
+                        <span className="text-sm font-medium text-slate-700 truncate max-w-[120px] hover:text-indigo-600 transition-colors">{t.tool_name}</span>
+                      </div>
+                      <span className="text-sm font-bold text-red-500">₹{w.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <motion.div
+                          className="h-full rounded-full"
+                          style={{ background: pct > 50 ? '#EF4444' : pct > 25 ? '#F59E0B' : '#10B981' }}
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min(pct, 100)}%` }}
+                          transition={{ delay: 0.8 + i * 0.07, duration: 0.6, ease: 'easeOut' }}
+                        />
+                      </div>
+                      <span className="text-xs text-slate-400 w-8 text-right">{t.unused_seats || 0} idle</span>
+                    </div>
+                  </motion.div>
+                );
+              }) : (
+                <EmptyState icon={RiShieldCheckLine} message="No waste detected — great job! 🎉" />
+              )}
+            </AnimatePresence>
+          </div>
+        </motion.div>
+
+        {/* Upcoming Renewals */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.5 }}
+          className="bg-white rounded-2xl border border-slate-100 p-5"
+          style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
+        >
+          <SectionHeader title="Upcoming Renewals" actionLabel="Manage" action={() => navigate('/renewals')} />
+          <div className="space-y-0">
+            {renewals.slice(0, 5).length > 0 ? renewals.slice(0, 5).map((r, i) => {
+              const days = r.days_until_renewal ?? 91;
+              return (
+                <motion.div
+                  key={r.id || i}
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.65 + i * 0.07 }}
+                  className="flex items-center justify-between py-3 border-b border-slate-50 last:border-0 cursor-pointer hover:bg-slate-50/80 rounded-lg px-1 -mx-1 transition-colors"
+                  onClick={() => navigate('/renewals')}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold ${
+                      days <= 30 ? 'bg-red-50 text-red-500' :
+                      days <= 60 ? 'bg-amber-50 text-amber-600' :
+                      'bg-slate-100 text-slate-500'
+                    }`}>
+                      {days}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-slate-700 leading-none">{r.tool_name}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">{r.renewal_date}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <RiskBadge days={days} />
+                    {r.auto_renewal && (
+                      <span className="text-xs text-amber-600 font-medium">Auto-renew</span>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            }) : (
+              <EmptyState icon={RiCalendarEventLine} message="No upcoming renewals" />
+            )}
+          </div>
+        </motion.div>
