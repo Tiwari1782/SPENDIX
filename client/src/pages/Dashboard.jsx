@@ -291,3 +291,126 @@ function SectionHeader({ title, action, actionLabel }) {
         className="space-y-6 pb-6"
       >
   
+      {/* ── Page Header ── */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight">Overview</h1>
+          <p className="text-sm text-slate-400 mt-0.5">
+            Last updated {lastUpdated.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+          </p>
+        </div>
+        <motion.button
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={() => fetchAll(true)}
+          disabled={refreshing}
+          className="flex items-center gap-2 text-sm px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all"
+        >
+          <motion.span animate={{ rotate: refreshing ? 360 : 0 }} transition={{ repeat: refreshing ? Infinity : 0, duration: 1, ease: 'linear' }}>
+            <RiRefreshLine className="w-4 h-4" />
+          </motion.span>
+          Refresh
+        </motion.button>
+      </div>
+
+      {/* ── Metric Cards Grid ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {cards.map((c, i) => <MetricCard key={i} {...c} delay={i * 0.07} />)}
+      </div>
+
+      {/* ── Middle Row: Health + Category Spend ── */}
+      <div className="grid lg:grid-cols-3 gap-4">
+
+        {/* SaaS Health Score */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45, duration: 0.5 }}
+          className="bg-white rounded-2xl border border-slate-100 p-5"
+          style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
+        >
+          <SectionHeader title="SaaS Health Score" />
+          <div className="flex flex-col items-center justify-center py-4">
+            {/* Circular score */}
+            <div className="relative w-28 h-28">
+              <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                <circle cx="50" cy="50" r="40" fill="none" stroke="#F1F5F9" strokeWidth="10" />
+                <motion.circle
+                  cx="50" cy="50" r="40" fill="none"
+                  stroke={healthColor === 'emerald' ? '#10B981' : healthColor === 'amber' ? '#F59E0B' : '#EF4444'}
+                  strokeWidth="10"
+                  strokeLinecap="round"
+                  strokeDasharray={`${2 * Math.PI * 40}`}
+                  initial={{ strokeDashoffset: 2 * Math.PI * 40 }}
+                  animate={{ strokeDashoffset: 2 * Math.PI * 40 * (1 - healthScore / 100) }}
+                  transition={{ duration: 1.2, delay: 0.6, ease: 'easeOut' }}
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-2xl font-bold text-slate-900">{healthScore}</span>
+                <span className="text-xs text-slate-400">/ 100</span>
+              </div>
+            </div>
+            <div className={`mt-3 px-3 py-1 rounded-full text-sm font-semibold ${
+              healthColor === 'emerald' ? 'bg-emerald-50 text-emerald-700' :
+              healthColor === 'amber' ? 'bg-amber-50 text-amber-700' :
+              'bg-red-50 text-red-600'
+            }`}>
+              {healthLabel}
+            </div>
+          </div>
+          {/* Mini breakdown */}
+          <div className="space-y-2 mt-3 border-t border-slate-50 pt-3">
+            {[
+              { label: 'Waste ratio', value: `${wastePercent}%`, ok: wastePercent < 15 },
+              { label: 'Offboarding risk', value: offboarding.length, ok: offboarding.length === 0 },
+              { label: 'Urgent renewals', value: renewals.filter(r => (r.days_until_renewal ?? 91) <= 30).length, ok: renewals.filter(r => (r.days_until_renewal ?? 91) <= 30).length === 0 },
+            ].map((row, i) => (
+              <div key={i} className="flex items-center justify-between text-xs">
+                <span className="text-slate-500">{row.label}</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-semibold text-slate-700">{row.value}</span>
+                  {row.ok
+                    ? <RiCheckboxCircleLine className="w-3.5 h-3.5 text-emerald-500" />
+                    : <RiAlertLine className="w-3.5 h-3.5 text-red-400" />}
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Spend by Category bar chart */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.5 }}
+          className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 p-5"
+          style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
+        >
+          <SectionHeader title="Monthly Spend by Category" />
+          {categorySpend.length > 0 ? (
+            <div style={{ height: 180 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={categorySpend} margin={{ top: 4, right: 8, bottom: 0, left: 0 }} barSize={24}>
+                  <XAxis dataKey="category" tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />
+                  <Tooltip
+                    formatter={v => [`₹${v.toLocaleString('en-IN')}`, 'Spend']}
+                    contentStyle={{ borderRadius: 10, border: '1px solid #E2E8F0', fontSize: 12, boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}
+                    cursor={{ fill: '#F8FAFC' }}
+                  />
+                  <defs>
+                    <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#6366F1" />
+                      <stop offset="100%" stopColor="#818CF8" />
+                    </linearGradient>
+                  </defs>
+                  <Bar dataKey="spend" fill="url(#barGrad)" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <EmptyState icon={RiStackLine} message="No tools added yet" />
+          )}
+        </motion.div>
+      </div>
