@@ -196,3 +196,98 @@ function SectionHeader({ title, action, actionLabel }) {
       finally { setLoading(false); setRefreshing(false); }
     };
   
+    useEffect(() => { fetchAll(); }, [companyId]);
+
+    if (loading) return (
+      <div className="space-y-6 p-1">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
+        </div>
+        <SkeletonTable />
+      </div>
+    );
+  
+    const spend   = summary?.total_monthly_spend || 0;
+    const waste   = summary?.total_monthly_waste || 0;
+    const savings = waste * 12;
+    const topWaste = [...tools].sort((a, b) => (b.monthly_waste || 0) - (a.monthly_waste || 0)).slice(0, 5);
+    const wastePercent = spend > 0 ? Math.round((waste / spend) * 100) : 0;
+  
+    const cards = [
+      {
+        title: 'Total Monthly Spend', value: spend, prefix: '₹', color: 'indigo',
+        icon: RiMoneyDollarCircleLine, trend: -4, trendLabel: 'vs last month',
+        sparkData: spark(spend, 7, 0.15), onClick: () => navigate('/licenses')
+      },
+      {
+        title: 'Monthly Waste', value: waste, prefix: '₹', color: 'red',
+        icon: RiFireLine, trend: 12, trendLabel: `${wastePercent}% of total spend`,
+        sparkData: spark(waste, 7, 0.3), onClick: () => navigate('/licenses')
+      },
+      {
+        title: 'Annual Savings Potential', value: savings, prefix: '₹', color: 'emerald',
+        icon: RiSparklingLine, trendLabel: 'If all waste eliminated',
+        sparkData: spark(savings, 7, 0.1), onClick: () => navigate('/forecast')
+      },
+      {
+        title: 'Upcoming Renewals', value: renewals.length, color: 'amber',
+        icon: RiCalendarEventLine, trendLabel: 'Next 90 days',
+        sparkData: spark(renewals.length + 2, 7, 0.4), onClick: () => navigate('/renewals')
+      },
+      {
+        title: 'Offboarding Risks', value: offboarding.length, color: 'red',
+        icon: RiUserUnfollowLine, trendLabel: 'Ex-employees with active licenses',
+        sparkData: spark(offboarding.length + 1, 7, 0.2), onClick: () => navigate('/offboarding')
+      },
+      {
+        title: 'Active Tools', value: summary?.total_tools || tools.length, color: 'indigo',
+        icon: RiStackLine, trendLabel: `${tools.filter(t => t.is_shadow_it).length || 0} shadow IT detected`,
+        sparkData: spark(tools.length, 7, 0.05), onClick: () => navigate('/shadow-it')
+      },
+    ];
+  
+    /* Mock spend-by-category for the bar chart */
+    const categorySpend = Object.values(
+      tools.reduce((acc, t) => {
+        const cat = t.category || 'Other';
+        acc[cat] = acc[cat] || { category: cat.replace('_', ' '), spend: 0 };
+        acc[cat].spend += t.total_monthly_cost || (t.seats_purchased * t.monthly_cost_per_seat) || 0;
+        return acc;
+      }, {})
+    ).sort((a, b) => b.spend - a.spend).slice(0, 5);
+  
+    /* Health score (simple heuristic) */
+    const healthScore = Math.max(0, Math.min(100, 100 - wastePercent * 1.5 - offboarding.length * 3 - (renewals.filter(r => (r.days_until_renewal ?? 91) <= 30).length) * 5));
+    const healthColor = healthScore >= 75 ? 'emerald' : healthScore >= 50 ? 'amber' : 'red';
+    const healthLabel = healthScore >= 75 ? 'Good' : healthScore >= 50 ? 'Fair' : 'At Risk';
+  
+    /* Activity feed (derived from real data) */
+    const activities = [
+      ...offboarding.slice(0, 2).map(o => ({
+        icon: RiUserUnfollowLine, color: 'red',
+        title: `${o.employee_name || 'Ex-employee'} has active licenses`,
+        sub: `${o.active_license_count || 1} tools still accessible`,
+        time: 'Now'
+      })),
+      ...renewals.slice(0, 2).map(r => ({
+        icon: RiCalendarEventLine, color: 'amber',
+        title: `${r.tool_name} renews in ${r.days_until_renewal ?? '?'} days`,
+        sub: r.auto_renewal ? 'Auto-renewal ON — action needed' : 'Manual renewal required',
+        time: r.renewal_date
+      })),
+      ...topWaste.slice(0, 1).map(t => ({
+        icon: RiAlertLine, color: 'red',
+        title: `${t.tool_name} has ${t.unused_seats || 0} idle seats`,
+        sub: `₹${(t.monthly_waste || 0).toLocaleString('en-IN')} wasted per month`,
+        time: 'Today'
+      })),
+    ].slice(0, 5);
+  
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        className="space-y-6 pb-6"
+      >
+  
