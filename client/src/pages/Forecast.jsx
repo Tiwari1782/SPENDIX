@@ -368,3 +368,173 @@ function getDelta(current, forecast) {
           </motion.div>
         )}
       </AnimatePresence>
+        {/* ══ FORECAST TABLE ══ */}
+        <motion.div
+        variants={itemVariants}
+        className="bg-white rounded-2xl border border-slate-100 overflow-hidden"
+        style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
+      >
+        {/* Table header row */}
+        <div
+          className="px-6 py-4 flex items-center justify-between"
+          style={{ borderBottom: '1px solid #F1F5F9' }}
+        >
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-slate-800">All Tool Forecasts</h3>
+            <span
+              className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+              style={{ background: '#EEF2FF', color: '#6366F1' }}
+            >
+              {currentData.length} tools
+            </span>
+          </div>
+          <p className="text-xs text-slate-400">Click "View Trend" to open the chart</p>
+        </div>
+
+        {currentData.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
+                  {['Tool', 'Current Cost', 'Last Actual', 'Month 1', 'Month 2', 'Month 3', 'Confidence', ''].map(h => (
+                    <th
+                      key={h}
+                      className="px-5 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wide whitespace-nowrap"
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {currentData.map((tool, i) => {
+                  const isSelected = selectedTool?.tool_id === tool.tool_id;
+                  const f = tool.forecasts || [];
+                  const delta = getDelta(tool.current_monthly_cost, f[0]?.projected_spend);
+                  return (
+                    <motion.tr
+                      key={tool.tool_id || i}
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.04 }}
+                      className="border-b border-slate-50 transition-colors"
+                      style={{ background: isSelected ? '#EEF2FF' : undefined }}
+                      onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = '#F8FAFC'; }}
+                      onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = ''; }}
+                    >
+                      {/* Tool name */}
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-2.5">
+                          <div
+                            className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white shrink-0"
+                            style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}
+                          >
+                            {tool.tool_name?.charAt(0)?.toUpperCase() || '?'}
+                          </div>
+                          <span className="font-semibold text-slate-700 truncate max-w-[120px]">
+                            {tool.tool_name}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Current cost */}
+                      <td className="px-5 py-3.5">
+                        <span className="font-semibold text-slate-800">
+                          ₹{(tool.current_monthly_cost || 0).toLocaleString('en-IN')}
+                        </span>
+                      </td>
+
+                      {/* Last actual */}
+                      <td className="px-5 py-3.5 text-slate-500">
+                        {tool.last_month_actual
+                          ? `₹${tool.last_month_actual.toLocaleString('en-IN')}`
+                          : <span className="text-slate-300">—</span>}
+                      </td>
+
+                      {/* Month 1, 2, 3 */}
+                      {[0, 1, 2].map(idx => {
+                        const fc = f[idx];
+                        if (!fc) return (
+                          <td key={idx} className="px-5 py-3.5">
+                            <span className="text-slate-300 text-xs">—</span>
+                          </td>
+                        );
+                        const cfg = CONFIDENCE[fc.confidence_level] || CONFIDENCE.medium;
+                        return (
+                          <td key={idx} className="px-5 py-3.5">
+                            <span
+                              className="inline-block text-xs font-bold px-2.5 py-1 rounded-lg"
+                              style={{ background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.border}` }}
+                            >
+                              ₹{(fc.projected_spend / 1000).toFixed(1)}k
+                            </span>
+                          </td>
+                        );
+                      })}
+
+                      {/* Confidence */}
+                      <td className="px-5 py-3.5">
+                        {f[0]
+                          ? <ConfidenceBadge level={f[0].confidence_level} />
+                          : <span className="text-slate-300 text-xs">—</span>}
+                      </td>
+
+                      {/* View trend CTA */}
+                      <td className="px-5 py-3.5">
+                        <motion.button
+                          whileHover={{ x: 2 }}
+                          onClick={() => loadHistory(tool)}
+                          className="flex items-center gap-1.5 text-xs font-semibold transition-colors whitespace-nowrap"
+                          style={{ color: isSelected ? '#4F46E5' : '#6366F1' }}
+                        >
+                          <RiLineChartLine className="w-3.5 h-3.5" />
+                          View Trend
+                          <RiArrowRightLine className="w-3 h-3" />
+                        </motion.button>
+                      </td>
+                    </motion.tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          /* Empty state */
+          <div className="flex flex-col items-center justify-center py-16 text-center px-6">
+            <div
+              className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
+              style={{
+                background: 'linear-gradient(135deg, #ECFDF5, #EEF2FF)',
+                border: '1px solid #C7D2FE',
+              }}
+            >
+              <RiLineChartLine className="w-7 h-7 text-indigo-400" />
+            </div>
+            <p
+              className="text-lg font-bold text-slate-700 mb-1"
+              style={{ fontFamily: "'DM Serif Display', serif" }}
+            >
+              No forecasts yet
+            </p>
+            <p className="text-sm text-slate-400 max-w-xs leading-relaxed mb-5">
+              Generate AI-powered projections for every tool in your stack with one click.
+            </p>
+            <motion.button
+              whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+              onClick={handleGenerate}
+              disabled={generating}
+              className="flex items-center gap-2 text-sm font-bold px-5 py-2.5 rounded-xl text-white disabled:opacity-50"
+              style={{
+                background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
+                boxShadow: '0 4px 14px rgba(99,102,241,0.3)',
+              }}
+            >
+              <RiSparklingLine className="w-4 h-4" />
+              Generate Forecasts
+            </motion.button>
+          </div>
+        )}
+      </motion.div>
+    </motion.div>
+  );
+}
