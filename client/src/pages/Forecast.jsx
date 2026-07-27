@@ -107,3 +107,142 @@ function ForecastPills({ forecasts }) {
     </div>
   );
 }
+/* ─── Trend delta helper ─── */
+function getDelta(current, forecast) {
+    if (!current || !forecast) return null;
+    return Math.round(((forecast - current) / current) * 100);
+  }
+  
+  /* ═══════════════ MAIN PAGE ═══════════════ */
+  export default function Forecast() {
+    const { companyId } = useAuth();
+    const [generating, setGenerating]     = useState(false);
+    const [selectedTool, setSelectedTool] = useState(null);
+    const [history, setHistory]           = useState([]);
+    const [localForecasts, setLocalForecasts] = useState(null);
+    const [historyLoading, setHistoryLoading] = useState(false);
+  
+    const { phase, data } = usePageLoader(async () => {
+      if (!companyId) return [];
+      const res = await api.getForecasts(companyId);
+      return res.data || [];
+    }, [companyId]);
+  
+    const currentData = localForecasts ?? data ?? [];
+  
+    /* ── Derived stats ── */
+    const totalCurrent  = currentData.reduce((s, t) => s + (t.current_monthly_cost || 0), 0);
+    const totalForecast = currentData.reduce((s, t) => {
+      const next = t.forecasts?.[0]?.projected_spend || t.current_monthly_cost || 0;
+      return s + next;
+    }, 0);
+    const overBudget = currentData.filter(t => {
+      const next = t.forecasts?.[0]?.projected_spend || 0;
+      return next > (t.current_monthly_cost || 0) * 1.1;
+    }).length;
+    const highConf = currentData.filter(t =>
+      t.forecasts?.some(f => f.confidence_level === 'high')
+    ).length;
+  
+    const handleGenerate = async () => {
+      setGenerating(true);
+      try {
+        await api.generateForecasts(companyId);
+        const res = await api.getForecasts(companyId);
+        setLocalForecasts(res.data || []);
+      } catch {}
+      finally { setGenerating(false); }
+    };
+  
+    const loadHistory = async (tool) => {
+      setSelectedTool(tool);
+      setHistoryLoading(true);
+      try {
+        const res = await api.getToolHistory(tool.tool_id);
+        setHistory(res.data || []);
+      } catch { setHistory([]); }
+      finally { setHistoryLoading(false); }
+    };
+  
+    if (phase === 'loader')   return <SpendixLoader fullPage />;
+    if (phase === 'skeleton') return (
+      <div className="space-y-5">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => <div key={i} className="h-28 bg-slate-100 rounded-2xl animate-pulse" />)}
+        </div>
+        <SkeletonChart />
+        <SkeletonTable />
+      </div>
+    );
+  
+    return (
+      <motion.div
+        initial="hidden" animate="visible" variants={containerVariants}
+        className="space-y-5 pb-6"
+      >
+        {/* ══ PAGE HEADER ══ */}
+        <motion.div variants={itemVariants} className="flex items-start justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <div className="p-1.5 rounded-lg bg-emerald-50 border border-emerald-100">
+                <RiLineChartLine className="w-4 h-4 text-emerald-600" />
+              </div>
+              <h1 className="text-xl font-bold text-slate-900 tracking-tight">Spend Forecast</h1>
+            </div>
+            <p className="text-sm text-slate-400 ml-9">
+              {currentData.length} tool{currentData.length !== 1 ? 's' : ''} tracked &middot; AI-powered 3-month projections
+            </p>
+          </div>
+  
+          <motion.button
+            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+            onClick={handleGenerate}
+            disabled={generating}
+            className="flex items-center gap-2 text-sm font-bold px-4 py-2.5 rounded-xl text-white disabled:opacity-60 transition-all"
+            style={{
+              background: generating
+                ? '#818CF8'
+                : 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)',
+              boxShadow: generating ? 'none' : '0 4px 14px rgba(99,102,241,0.35)',
+            }}
+          >
+            {generating ? (
+              <>
+                <motion.span
+                  className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 0.8, ease: 'linear' }}
+                />
+                Generating…
+              </>
+            ) : (
+              <>
+                <RiSparklingLine className="w-4 h-4" />
+                Generate Forecasts
+              </>
+            )}
+          </motion.button>
+        </motion.div>
+  
+        {/* ══ STAT CARDS ══ */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard
+            icon={RiMoneyDollarCircleLine} label="Current Monthly" prefix="₹"
+            value={totalCurrent} color="indigo" sub="Across all tools"
+          />
+          <StatCard
+            icon={RiBarChartGroupedLine} label="Next Month (Projected)" prefix="₹"
+            value={totalForecast} color={totalForecast > totalCurrent ? 'red' : 'emerald'}
+            trend={getDelta(totalCurrent, totalForecast)}
+            sub="Based on AI model"
+          />
+          <StatCard
+            icon={RiArrowUpLine} label="Over-Budget Tools" value={overBudget}
+            color="amber" sub="Projected to exceed 10%"
+          />
+          <StatCard
+            icon={RiCheckLine} label="High Confidence" value={highConf}
+            color="emerald" sub="Reliable projections"
+          />
+        </div>
+  
