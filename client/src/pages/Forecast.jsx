@@ -245,4 +245,126 @@ function getDelta(current, forecast) {
             color="emerald" sub="Reliable projections"
           />
         </div>
-  
+   {/* ══ AI EXPLAINER BANNER ══ */}
+   <motion.div
+        variants={itemVariants}
+        className="relative overflow-hidden rounded-2xl px-6 py-4 flex items-center gap-4"
+        style={{
+          background: 'linear-gradient(135deg, rgba(16,185,129,0.07) 0%, rgba(99,102,241,0.06) 100%)',
+          border: '1px solid rgba(16,185,129,0.15)',
+        }}
+      >
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: 'linear-gradient(rgba(99,102,241,1) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,1) 1px, transparent 1px)',
+            backgroundSize: '20px 20px',
+          }}
+        />
+        <div
+          className="relative shrink-0 w-9 h-9 rounded-xl flex items-center justify-center"
+          style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)' }}
+        >
+          <RiFlashlightLine className="w-5 h-5 text-emerald-500" />
+        </div>
+        <div className="relative flex-1 min-w-0">
+          <p className="text-sm font-semibold text-slate-700">Groq AI forecasting</p>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Projections use historical spend snapshots with LLaMA-3. High confidence = consistent spend pattern; Low confidence = volatile or sparse history.
+          </p>
+        </div>
+        <motion.button
+          whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+          onClick={handleGenerate}
+          disabled={generating}
+          className="relative shrink-0 flex items-center gap-1.5 text-xs font-semibold text-emerald-700 disabled:opacity-50 whitespace-nowrap"
+        >
+          Refresh <RiArrowRightLine className="w-3.5 h-3.5" />
+        </motion.button>
+      </motion.div>
+
+      {/* ══ CHART (when a tool is selected) ══ */}
+      <AnimatePresence>
+        {selectedTool && (
+          <motion.div
+            key={selectedTool.tool_id}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="bg-white rounded-2xl border border-slate-100 overflow-hidden"
+            style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
+          >
+            {/* Chart panel header */}
+            <div
+              className="relative px-6 py-4 flex items-center justify-between overflow-hidden"
+              style={{
+                background: 'linear-gradient(135deg, #0F172A 0%, #1E1B4B 100%)',
+                borderBottom: '1px solid rgba(99,102,241,0.18)',
+              }}
+            >
+              <div
+                className="absolute inset-0 opacity-[0.05]"
+                style={{
+                  backgroundImage: 'linear-gradient(rgba(99,102,241,1) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,1) 1px, transparent 1px)',
+                  backgroundSize: '24px 24px',
+                }}
+              />
+              <motion.div
+                className="absolute -top-8 -right-8 w-32 h-32 rounded-full pointer-events-none"
+                style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.25) 0%, transparent 70%)' }}
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+              />
+              <div className="relative z-10 flex items-center gap-3">
+                <div
+                  className="w-8 h-8 rounded-xl flex items-center justify-center"
+                  style={{ background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.35)' }}
+                >
+                  <RiLineChartLine className="w-4 h-4 text-indigo-300" />
+                </div>
+                <div>
+                  <p
+                    className="text-base font-bold text-white leading-none"
+                    style={{ fontFamily: "'DM Serif Display', serif" }}
+                  >
+                    {selectedTool.tool_name}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-0.5">Spend trend &amp; 3-month forecast</p>
+                </div>
+              </div>
+              <div className="relative z-10 flex items-center gap-3">
+                {selectedTool.forecasts?.[0] && (
+                  <ConfidenceBadge level={selectedTool.forecasts[0].confidence_level} />
+                )}
+                <button
+                  onClick={() => setSelectedTool(null)}
+                  className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/10 transition-all"
+                >
+                  <RiCloseLine className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Chart body */}
+            <div className="p-5">
+              {historyLoading ? (
+                <div className="flex flex-col items-center justify-center py-14 gap-3">
+                  <motion.div
+                    className="w-8 h-8 border-2 border-indigo-100 border-t-indigo-500 rounded-full"
+                    animate={{ rotate: 360 }}
+                    transition={{ repeat: Infinity, duration: 0.9, ease: 'linear' }}
+                  />
+                  <p className="text-sm text-slate-400">Loading trend data…</p>
+                </div>
+              ) : (
+                <ForecastChart
+                  snapshots={history}
+                  forecasts={selectedTool.forecasts}
+                  toolName={selectedTool.tool_name}
+                />
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
