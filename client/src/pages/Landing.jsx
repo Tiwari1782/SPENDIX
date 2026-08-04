@@ -510,3 +510,161 @@ const compTable = [
           </motion.div>
         </div>
       </Section>
+        {/* ── TESTIMONIALS ── */}
+        <Section className="py-24 px-6">
+        <div className="max-w-5xl mx-auto">
+          <motion.p variants={fadeUp} className="text-xs font-bold uppercase tracking-widest text-indigo-500 text-center mb-3">Customer stories</motion.p>
+          <motion.h2 variants={fadeUp} className="text-3xl md:text-4xl font-bold text-center text-slate-900 mb-12"
+            style={{ fontFamily: "'DM Serif Display', serif" }}>
+            Real savings. Real companies.
+          </motion.h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            {testimonials.map((t, i) => (
+              <motion.div key={i} variants={fadeUp} transition={{ delay: i * 0.1 }}
+                whileHover={{ y: -4 }}
+                className="bg-white rounded-2xl p-6 border border-slate-100"
+                style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
+                <div className="flex gap-0.5 mb-4">
+                  {[...Array(t.stars)].map((_, s) => <RiStarLine key={s} className="w-4 h-4 text-amber-400 fill-amber-400" style={{ fill: '#FBBF24' }} />)}
+                </div>
+                <p className="text-slate-600 text-sm leading-relaxed mb-5">"{t.review}"</p>
+                <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
+                  <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center shrink-0">
+                    {t.avatar}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">{t.name}</p>
+                    <p className="text-xs text-slate-400">{t.title}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </Section>
+
+      {/* ── PRICING ── */}
+      <Section id="pricing" className="py-24 px-6" style={{ background: '#F8FAFC' }}>
+        <div className="max-w-5xl mx-auto">
+          <motion.p variants={fadeUp} className="text-xs font-bold uppercase tracking-widest text-indigo-500 text-center mb-3">Pricing</motion.p>
+          <motion.h2 variants={fadeUp} className="text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4"
+            style={{ fontFamily: "'DM Serif Display', serif" }}>
+            Priced for Indian mid-market
+          </motion.h2>
+          <motion.p variants={fadeUp} className="text-center text-slate-500 mb-12">No dollar conversions. No enterprise-only pricing. Cancel anytime.</motion.p>
+          <div className="grid md:grid-cols-3 gap-6 items-start">
+            {pricing.map((plan, i) => (
+              <motion.div key={i} variants={scaleIn} transition={{ delay: i * 0.1 }}
+                className={`rounded-2xl p-7 border relative ${plan.highlight ? 'border-indigo-200' : 'border-slate-100 bg-white'}`}
+                style={plan.highlight
+                  ? { background: 'linear-gradient(145deg, #EEF2FF, #F5F3FF)', boxShadow: '0 16px 48px rgba(99,102,241,0.15)' }
+                  : { boxShadow: '0 4px 16px rgba(0,0,0,0.05)' }}>
+                {plan.badge && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="text-xs font-bold text-white px-4 py-1.5 rounded-full"
+                      style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}>
+                      {plan.badge}
+                    </span>
+                  </div>
+                )}
+                <p className="font-bold text-slate-500 text-sm mb-2">{plan.name}</p>
+                <div className="flex items-baseline gap-1 mb-1">
+                  <span className="text-4xl font-bold text-slate-900" style={{ fontFamily: "'DM Serif Display', serif" }}>{plan.price}</span>
+                  <span className="text-slate-400 text-sm">{plan.period}</span>
+                </div>
+                <p className="text-xs text-slate-400 mb-6">Billed monthly. GST extra.</p>
+                <ul className="space-y-3 mb-8">
+                  {plan.features.map((f, j) => (
+                    <li key={j} className="flex items-start gap-2.5 text-sm text-slate-700">
+                      <RiCheckLine className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link to="/signup"
+                  className="block text-center py-3 rounded-xl text-sm font-bold transition-all"
+                  style={plan.highlight
+                    ? { background: 'linear-gradient(135deg, #6366F1, #4F46E5)', color: 'white', boxShadow: '0 6px 20px rgba(99,102,241,0.3)' }
+                    : { background: '#F1F5F9', color: '#475569' }}>
+                  {plan.price === 'Custom' ? 'Contact Sales' : 'Get Started'}
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </Section>
+
+      {/* ── FINAL CTA ── */}
+      <Section className="py-24 px-6">
+        <motion.div variants={scaleIn} className="max-w-3xl mx-auto text-center rounded-3xl p-12 relative overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1E1B4B 100%)', boxShadow: '0 32px 80px rgba(15,23,42,0.25)' }}>
+          <div className="absolute inset-0 opacity-10"
+            style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, #6366F1 0%, transparent 50%), radial-gradient(circle at 80% 50%, #8B5CF6 0%, transparent 50%)' }} />
+          <div className="relative z-10">
+            <p className="text-indigo-300 text-xs font-bold uppercase tracking-widest mb-4">Start saving today</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4" style={{ fontFamily: "'DM Serif Display', serif" }}>
+              Ready to stop overpaying?
+            </h2>
+            <p className="text-slate-400 mb-8 max-w-md mx-auto">
+              Join 200+ Indian companies saving an average of ₹18L annually on SaaS. Setup takes less than 10 minutes.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link to="/signup"
+                className="flex items-center justify-center gap-2 font-bold text-base px-8 py-4 rounded-2xl text-white transition-all"
+                style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)', boxShadow: '0 8px 32px rgba(99,102,241,0.5)' }}>
+                Start Free Trial <RiArrowRightLine className="w-5 h-5" />
+              </Link>
+              <Link to="/login"
+                className="flex items-center justify-center font-semibold text-base px-8 py-4 rounded-2xl transition-all border"
+                style={{ color: '#CBD5E1', borderColor: 'rgba(203,213,225,0.2)', background: 'rgba(255,255,255,0.05)' }}>
+                Log in to dashboard
+              </Link>
+            </div>
+            <p className="text-slate-500 text-xs mt-6">No credit card required · Free 14-day trial · Cancel anytime</p>
+          </div>
+        </motion.div>
+      </Section>
+
+      {/* ── FOOTER ── */}
+      <footer style={{ background: '#0F172A' }} className="pt-16 pb-8 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-4 gap-8 pb-12 border-b border-slate-800">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <svg width="26" height="26" viewBox="0 0 48 48" fill="none">
+                  <rect x="6" y="28" width="9" height="14" rx="2.5" fill="#6366F1" opacity="0.5"/>
+                  <rect x="19" y="17" width="9" height="25" rx="2.5" fill="#6366F1" opacity="0.75"/>
+                  <rect x="32" y="6" width="9" height="36" rx="2.5" fill="#6366F1"/>
+                </svg>
+                <span className="font-bold text-white text-lg" style={{ fontFamily: "'DM Serif Display', serif" }}>Spendix</span>
+              </div>
+              <p className="text-slate-500 text-sm leading-relaxed">SaaS spend intelligence for Indian mid-market companies.</p>
+              <p className="text-slate-600 text-xs mt-4">Made with ♥ in India 🇮🇳</p>
+            </div>
+            {[
+              { title: 'Product', links: ['Features', 'Pricing', 'Integrations', 'Changelog', 'Roadmap'] },
+              { title: 'Company', links: ['About', 'Blog', 'Careers', 'Press', 'Contact'] },
+              { title: 'Legal', links: ['Privacy Policy', 'Terms of Service', 'Security', 'Cookie Policy'] },
+            ].map(col => (
+              <div key={col.title}>
+                <p className="text-slate-300 text-sm font-semibold mb-4">{col.title}</p>
+                <ul className="space-y-2.5">
+                  {col.links.map(l => (
+                    <li key={l}><a href="#" className="text-slate-500 text-sm hover:text-slate-300 transition-colors">{l}</a></li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8">
+            <p className="text-slate-600 text-xs">© {new Date().getFullYear()} Spendix Technologies Pvt. Ltd. All rights reserved.</p>
+            <div className="flex items-center gap-2 text-xs text-slate-600">
+              <RiLockPasswordLine className="w-3.5 h-3.5 text-emerald-500" />
+              SOC 2 Type II · ISO 27001 · GDPR Compliant
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
