@@ -406,3 +406,107 @@ const compTable = [
           </div>
         </div>
       </Section>
+    {/* ── FEATURES ── */}
+    <Section id="features" className="py-24 px-6" style={{ background: '#F8FAFC' }}>
+        <div className="max-w-6xl mx-auto">
+          <motion.p variants={fadeUp} className="text-center text-xs font-bold uppercase tracking-widest text-indigo-500 mb-3">Platform features</motion.p>
+          <motion.h2 variants={fadeUp} className="text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4"
+            style={{ fontFamily: "'DM Serif Display', serif" }}>
+            Everything in one platform
+          </motion.h2>
+          <motion.p variants={fadeUp} className="text-center text-slate-500 mb-14 max-w-2xl mx-auto">
+            11 interconnected modules working together to give you complete control over every rupee you spend on software.
+          </motion.p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {features.map((f, i) => (
+              <motion.div key={i} variants={fadeUp} transition={{ delay: i * 0.04 }}
+                whileHover={{ y: -4, boxShadow: '0 16px 40px rgba(0,0,0,0.1)' }}
+                className="bg-white rounded-2xl p-6 border border-slate-100 transition-all cursor-default group"
+                style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 transition-colors"
+                  style={{ background: f.bg }}>
+                  <f.icon className="w-5 h-5" style={{ color: f.color }} />
+                </div>
+                <h3 className="font-bold text-slate-900 mb-2 text-base">{f.title}</h3>
+                <p className="text-sm text-slate-500 leading-relaxed">{f.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </Section>
+
+      {/* ── INTEGRATIONS ── */}
+      <Section id="integrations" className="py-24 px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <motion.p variants={fadeUp} className="text-xs font-bold uppercase tracking-widest text-indigo-500 mb-3">Integrations</motion.p>
+          <motion.h2 variants={fadeUp} className="text-3xl md:text-4xl font-bold text-slate-900 mb-4"
+            style={{ fontFamily: "'DM Serif Display', serif" }}>
+            Connects to tools you already use
+          </motion.h2>
+          <motion.p variants={fadeUp} className="text-slate-500 mb-12">One-click connections. Real-time data. No manual uploads.</motion.p>
+          <motion.div variants={stagger(0.1)} className="flex flex-wrap items-center justify-center gap-4">
+            {[
+              { name: 'Google Workspace', icon: SiGoogle, color: '#4285F4' },
+              { name: 'Razorpay', icon: SiRazorpay, color: '#3395FF' },
+              { name: 'Slack', icon: SiSlack, color: '#4A154B' },
+              { name: 'Jira', icon: SiJira, color: '#0052CC' },
+              { name: 'Zoho Books', icon: RiBuilding2Line, color: '#E42527' },
+            ].map((t, i) => (
+              <motion.div key={i} variants={scaleIn} whileHover={{ scale: 1.05, y: -2 }}
+                className="flex items-center gap-3 bg-white px-6 py-4 rounded-2xl border border-slate-100 shadow-sm transition-all cursor-default">
+                <t.icon className="w-5 h-5" style={{ color: t.color }} />
+                <span className="font-semibold text-slate-700 text-sm">{t.name}</span>
+              </motion.div>
+            ))}
+          </motion.div>
+          <motion.p variants={fadeUp} className="mt-8 text-sm text-slate-400">More integrations coming — Freshbooks, QuickBooks, Notion, Figma</motion.p>
+        </div>
+      </Section>
+
+      {/* ── COMPARISON TABLE ── */}
+      <Section className="py-24 px-6" style={{ background: '#F8FAFC' }}>
+        <div className="max-w-5xl mx-auto">
+          <motion.p variants={fadeUp} className="text-xs font-bold uppercase tracking-widest text-indigo-500 text-center mb-3">Why Spendix</motion.p>
+          <motion.h2 variants={fadeUp} className="text-3xl md:text-4xl font-bold text-center text-slate-900 mb-12"
+            style={{ fontFamily: "'DM Serif Display', serif" }}>
+            Built for India. Others are not.
+          </motion.h2>
+          <motion.div variants={scaleIn} className="bg-white rounded-2xl border border-slate-100 overflow-hidden"
+            style={{ boxShadow: '0 4px 32px rgba(0,0,0,0.07)' }}>
+            <table className="w-full text-sm">
+              <thead>
+                <tr style={{ background: '#0F172A' }}>
+                  <th className="text-left px-6 py-4 text-slate-300 font-medium">Feature</th>
+                  {[
+                    { name: 'Spendix', highlight: true },
+                    { name: 'Zylo', highlight: false },
+                    { name: 'Zluri', highlight: false },
+                    { name: 'Torii', highlight: false },
+                  ].map(h => (
+                    <th key={h.name} className="px-4 py-4 text-center font-semibold"
+                      style={{ color: h.highlight ? '#A5B4FC' : '#64748B' }}>
+                      {h.highlight && <span className="block text-xs text-indigo-400 font-normal mb-0.5">◉ You</span>}
+                      {h.name}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {compTable.map((row, i) => (
+                  <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
+                    <td className="px-6 py-3.5 text-slate-700 font-medium">{row.feature}</td>
+                    {['spendix', 'zylo', 'zluri', 'torii'].map(vendor => (
+                      <td key={vendor} className="px-4 py-3.5 text-center">
+                        {row[vendor]
+                          ? <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100"><RiCheckLine className="w-3.5 h-3.5 text-emerald-600" /></span>
+                          : <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100"><RiCloseLine className="w-3.5 h-3.5 text-slate-400" /></span>
+                        }
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </motion.div>
+        </div>
+      </Section>
