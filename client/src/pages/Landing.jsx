@@ -101,3 +101,110 @@ const testimonials = [
   { name: 'Rohan Mehta', title: 'CFO, Kirana Kart', avatar: 'RM', review: 'We had 3 ex-employees with active admin access to Razorpay and our CRM. Spendix flagged it the moment we connected. That alone was worth every rupee.', stars: 5 },
   { name: 'Deepa Nair', title: 'VP Operations, BuildDesk', avatar: 'DN', review: 'The contract intelligence feature is genuinely impressive. It parsed our Salesforce renewal PDF and caught a 15% annual escalation clause we had completely missed.', stars: 5 },
 ];
+/* ─── Comparison ─── */
+const compTable = [
+    { feature: 'License waste detection',   spendix: true,  zylo: true,  zluri: true,  torii: true  },
+    { feature: 'Shadow IT discovery',       spendix: true,  zylo: true,  zluri: true,  torii: true  },
+    { feature: 'Contract renewal alerts',   spendix: true,  zylo: true,  zluri: true,  torii: true  },
+    { feature: 'Tool overlap detection',    spendix: true,  zylo: true,  zluri: false, torii: false },
+    { feature: 'Spend forecasting',         spendix: true,  zylo: true,  zluri: false, torii: false },
+    { feature: 'Contract PDF intelligence', spendix: true,  zylo: false, zluri: false, torii: false },
+    { feature: 'Peer benchmarking',         spendix: true,  zylo: true,  zluri: false, torii: false },
+    { feature: 'Groq AI invoice parsing',   spendix: true,  zylo: false, zluri: false, torii: false },
+    { feature: 'Pricing for Indian SMEs',   spendix: true,  zylo: false, zluri: false, torii: false },
+  ];
+  
+  /* ─── How It Works ─── */
+  const steps = [
+    { step: '01', title: 'Connect your stack', desc: 'Link Google Workspace, Zoho Books, or upload a CSV. Spendix syncs your tool inventory in minutes.', icon: RiPlugLine },
+    { step: '02', title: 'AI scans everything', desc: 'Groq AI categorizes tools, detects overlap, parses invoices, and identifies waste across every seat.', icon: RiSpyLine },
+    { step: '03', title: 'Resolve and save', desc: 'Act on AI recommendations with one click. Revoke access, trigger renewals, or consolidate tools.', icon: RiTrophyLine },
+  ];
+  
+  /* ─── Main Component ─── */
+  export default function Landing() {
+    const [navScrolled, setNavScrolled] = useState(false);
+    const [mobileOpen, setMobileOpen] = useState(false);
+    const { scrollY } = useScroll();
+    const heroY = useTransform(scrollY, [0, 500], [0, -60]);
+    const heroOpacity = useTransform(scrollY, [0, 400], [1, 0.3]);
+  
+    useEffect(() => {
+      return scrollY.on('change', v => setNavScrolled(v > 20));
+    }, [scrollY]);
+  
+    return (
+      <div className="min-h-screen bg-white overflow-x-hidden" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+  
+        {/* ── NAV ── */}
+        <motion.nav
+          className="fixed top-0 w-full z-50 transition-all duration-300"
+          style={{ background: navScrolled ? 'rgba(255,255,255,0.95)' : 'transparent', backdropFilter: navScrolled ? 'blur(20px)' : 'none', borderBottom: navScrolled ? '1px solid #E2E8F0' : 'none' }}
+        >
+          <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <svg width="30" height="30" viewBox="0 0 48 48" fill="none">
+                <rect x="6" y="28" width="9" height="14" rx="2.5" fill="#6366F1" opacity="0.5"/>
+                <rect x="19" y="17" width="9" height="25" rx="2.5" fill="#6366F1" opacity="0.75"/>
+                <rect x="32" y="6" width="9" height="36" rx="2.5" fill="#6366F1"/>
+              </svg>
+              <span className="text-xl font-bold text-slate-900" style={{ fontFamily: "'DM Serif Display', serif", letterSpacing: '-0.01em' }}>Spendix</span>
+            </div>
+  
+            <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-500">
+              {['Features', 'How It Works', 'Pricing', 'Integrations'].map(l => (
+                <a key={l} href={`#${l.toLowerCase().replace(' ', '-')}`} className="hover:text-slate-900 transition-colors">{l}</a>
+              ))}
+            </div>
+  
+            <div className="hidden md:flex items-center gap-3">
+              <Link to="/login" className="text-sm font-semibold text-slate-600 hover:text-slate-900 px-4 py-2 rounded-xl hover:bg-slate-100 transition-all">Log in</Link>
+              <Link to="/signup" className="flex items-center gap-1.5 text-sm font-semibold text-white px-5 py-2.5 rounded-xl transition-all"
+                style={{ background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)', boxShadow: '0 4px 14px rgba(99,102,241,0.35)' }}>
+                Start Free Trial <RiArrowRightLine className="w-4 h-4" />
+              </Link>
+            </div>
+  
+            <button className="md:hidden text-slate-600 p-2" onClick={() => setMobileOpen(!mobileOpen)}>
+              {mobileOpen ? <RiCloseLine className="w-5 h-5" /> : <RiMenu3Line className="w-5 h-5" />}
+            </button>
+          </div>
+  
+          <AnimatePresence>
+            {mobileOpen && (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                className="md:hidden bg-white border-t border-slate-100 px-6 py-4 space-y-3">
+                {['Features', 'How It Works', 'Pricing', 'Integrations'].map(l => (
+                  <a key={l} href={`#${l.toLowerCase().replace(' ', '-')}`} onClick={() => setMobileOpen(false)}
+                    className="block text-sm font-medium text-slate-600 py-2">{l}</a>
+                ))}
+                <Link to="/signup" className="block text-center text-sm font-semibold text-white py-3 rounded-xl mt-2"
+                  style={{ background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)' }}>
+                  Start Free Trial
+                </Link>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.nav>
+  
+        {/* ── HERO ── */}
+        <section className="relative min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden pt-16"
+          style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%, rgba(99,102,241,0.12) 0%, transparent 70%), linear-gradient(180deg, #0F172A 0%, #1E1B4B 40%, #0F172A 100%)' }}>
+  
+          {/* Animated grid bg */}
+          <div className="absolute inset-0 opacity-10"
+            style={{ backgroundImage: 'linear-gradient(rgba(99,102,241,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.5) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+  
+          {/* Floating orbs */}
+          <motion.div className="absolute top-1/4 left-1/5 w-64 h-64 rounded-full opacity-20 pointer-events-none"
+            style={{ background: 'radial-gradient(circle, #6366F1, transparent)' }}
+            animate={{ scale: [1, 1.2, 1], x: [0, 20, 0], y: [0, -20, 0] }}
+            transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }} />
+          <motion.div className="absolute bottom-1/4 right-1/5 w-48 h-48 rounded-full opacity-15 pointer-events-none"
+            style={{ background: 'radial-gradient(circle, #8B5CF6, transparent)' }}
+            animate={{ scale: [1.2, 1, 1.2], x: [0, -15, 0], y: [0, 20, 0] }}
+            transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }} />
+  
+          <motion.div style={{ y: heroY, opacity: heroOpacity }} className="relative z-10 text-center max-w-5xl mx-auto">
+  
