@@ -300,3 +300,109 @@ const compTable = [
                   </div>
                 ))}
               </div>
+              <div className="grid grid-cols-2 gap-3">
+                {/* Fake bar chart */}
+                <div className="bg-white rounded-xl p-3 border border-slate-100">
+                  <p className="text-xs text-slate-400 mb-2">Spend by Category</p>
+                  <div className="space-y-1.5">
+                    {[['CRM', 75, '#6366F1'], ['Comm.', 55, '#8B5CF6'], ['PM', 40, '#F59E0B'], ['Design', 25, '#10B981']].map(([lbl, w, color]) => (
+                      <div key={lbl} className="flex items-center gap-2">
+                        <span className="text-xs text-slate-400 w-10">{lbl}</span>
+                        <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
+                          <motion.div className="h-full rounded-full" style={{ background: color }}
+                            initial={{ width: 0 }} animate={{ width: `${w}%` }} transition={{ delay: 0.7, duration: 0.8 }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {/* Fake waste table */}
+                <div className="bg-white rounded-xl p-3 border border-slate-100">
+                  <p className="text-xs text-slate-400 mb-2">Top Wasted Tools</p>
+                  <div className="space-y-1.5">
+                    {[['Salesforce', '₹42,000', 10], ['Zoom', '₹28,000', 20], ['GitHub', '₹14,000', 8]].map(([tool, cost, seats]) => (
+                      <div key={tool} className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+                          <span className="text-xs text-slate-700 font-medium">{tool}</span>
+                        </div>
+                        <span className="text-xs font-bold text-red-500">{cost}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+
+        {/* Scroll indicator */}
+        <motion.div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }}>
+          <span className="text-xs text-slate-500">Scroll to explore</span>
+          <motion.div className="w-px h-8 bg-gradient-to-b from-slate-500 to-transparent"
+            animate={{ scaleY: [0, 1, 0] }} transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }} />
+        </motion.div>
+      </section>
+
+      {/* ── PROBLEM STATS ── */}
+      <Section className="py-20 px-6" style={{ background: '#FAFAFA' }}>
+        <div className="max-w-5xl mx-auto">
+          <motion.p variants={fadeUp} className="text-center text-xs font-bold uppercase tracking-widest text-indigo-500 mb-3">The SaaS spend problem</motion.p>
+          <motion.h2 variants={fadeUp} className="text-3xl md:text-4xl font-bold text-center text-slate-900 mb-12"
+            style={{ fontFamily: "'DM Serif Display', serif" }}>
+            Indian companies are bleeding money on software
+          </motion.h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { stat: 35, suffix: '%', label: 'of SaaS seats go completely unused', color: '#EF4444', icon: RiAlertLine },
+              { stat: 18, prefix: '₹', suffix: 'L+', label: 'wasted on SaaS per company annually', color: '#F59E0B', icon: RiFireLine },
+              { stat: 31, suffix: '%', label: 'of firms have ex-employee access to live systems', color: '#6366F1', icon: RiShieldUserLine },
+            ].map((item, i) => (
+              <motion.div key={i} variants={scaleIn}
+                className="bg-white rounded-2xl p-8 text-center border border-slate-100"
+                style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}
+                whileHover={{ y: -4, boxShadow: '0 12px 40px rgba(0,0,0,0.1)' }}>
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                  style={{ background: `${item.color}15` }}>
+                  <item.icon className="w-6 h-6" style={{ color: item.color }} />
+                </div>
+                <p className="text-5xl font-bold mb-2" style={{ color: item.color, fontFamily: "'DM Serif Display', serif" }}>
+                  {item.prefix || ''}<CountUp end={item.stat} />{item.suffix}
+                </p>
+                <p className="text-sm text-slate-500 leading-relaxed">{item.label}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </Section>
+
+      {/* ── HOW IT WORKS ── */}
+      <Section id="how-it-works" className="py-24 px-6">
+        <div className="max-w-5xl mx-auto">
+          <motion.p variants={fadeUp} className="text-center text-xs font-bold uppercase tracking-widest text-indigo-500 mb-3">How it works</motion.p>
+          <motion.h2 variants={fadeUp} className="text-3xl md:text-4xl font-bold text-center text-slate-900 mb-16"
+            style={{ fontFamily: "'DM Serif Display', serif" }}>
+            Up and running in under 10 minutes
+          </motion.h2>
+          <div className="grid md:grid-cols-3 gap-8 relative">
+            {/* Connector line */}
+            <div className="hidden md:block absolute top-10 left-1/3 right-1/3 h-px" style={{ background: 'linear-gradient(90deg, transparent, #6366F1, transparent)' }} />
+            {steps.map((s, i) => (
+              <motion.div key={i} variants={fadeUp} className="text-center relative">
+                <div className="relative inline-block mb-5">
+                  <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto border-2 border-indigo-100"
+                    style={{ background: 'linear-gradient(135deg, #EEF2FF, #F5F3FF)' }}>
+                    <s.icon className="w-8 h-8 text-indigo-600" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center">
+                    {i + 1}
+                  </div>
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">{s.title}</h3>
+                <p className="text-sm text-slate-500 leading-relaxed">{s.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </Section>
